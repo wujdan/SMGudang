@@ -61,6 +61,13 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label">Stok Minimum (Alert)</label>
+                            <input type="number" name="stok_minimum" class="form-control"
+                                value="{{ old('stok_minimum', $barang->stok_minimum) }}" min="0">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
                             <label class="form-label">Foto Barang</label>
                             @if ($barang->foto)
                                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">

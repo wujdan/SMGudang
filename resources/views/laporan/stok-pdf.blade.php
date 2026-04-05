@@ -49,6 +49,33 @@
 <body>
     <h2>LAPORAN STOK BARANG</h2>
 
+    @php
+        $kategori = request('kategori');
+        $kategoriLabel = 'SEMUA';
+        if ($kategori === 'cons') {
+            $kategoriLabel = 'Consumable';
+        } elseif ($kategori === 'material') {
+            $kategoriLabel = 'Material';
+        } elseif ($kategori === 'tools') {
+            $kategoriLabel = 'Tools';
+        } elseif ($kategori) {
+            $kategoriLabel = strtoupper($kategori);
+        }
+
+        $formatKategori = function ($value) {
+            if ($value === 'cons') {
+                return 'Consumable';
+            }
+            if ($value === 'material') {
+                return 'Material';
+            }
+            if ($value === 'tools') {
+                return 'Tools';
+            }
+            return $value ? strtoupper($value) : '-';
+        };
+    @endphp
+
     <div
         style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 10px;">
 
@@ -58,7 +85,7 @@
 
         <div>
             <strong>Kategori:</strong>
-            {{ request('kategori') ? strtoupper(request('kategori')) : 'SEMUA' }}
+            {{ $kategoriLabel }}
       
             <strong>Status:</strong>
             {{ request('status') ? strtoupper(request('status')) : 'SEMUA' }}
@@ -85,7 +112,7 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $item->kode_barang }}</td>   
                     <td class="text-left">{{ $item->nama_barang }}</td>
-                    <td>{{ $item->kategori }}</td>
+                    <td>{{ $formatKategori($item->kategori) }}</td>
                     <td>{{ $item->satuan }}</td>
                     <td>{{ $item->stok }}</td>
                     <td>

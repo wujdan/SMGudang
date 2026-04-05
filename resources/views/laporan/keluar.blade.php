@@ -41,6 +41,9 @@
                     </option>
                 </select>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Filter</button>
+                @if (request()->anyFilled(['dari', 'sampai', 'kategori']))
+                    <a href="{{ route('laporan.keluar') }}" class="btn btn-secondary">Reset</a>
+                @endif
             </form>
         </div>
         <div class="table-wrap">

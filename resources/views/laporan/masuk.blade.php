@@ -35,6 +35,9 @@
                     <option value="tools" {{ request('kategori') == 'tools' ? 'selected' : '' }}>Tools</option>
                 </select>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Filter</button>
+                @if (request()->anyFilled(['dari', 'sampai', 'kategori']))
+                    <a href="{{ route('laporan.masuk') }}" class="btn btn-secondary">Reset</a>
+                @endif
             </form>
             <div style="display: flex; gap: 16px; margin-bottom: 16px;">
                 <div style="background: #f0fdf4; padding: 10px 16px; border-radius: 8px; border: 1px solid #86efac;">

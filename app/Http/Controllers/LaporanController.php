@@ -37,7 +37,10 @@ class LaporanController extends Controller
         $barang = $query->orderBy('kategori')->orderBy('nama_barang')->get();
 
         if ($request->export === 'excel') {
-            return Excel::download(new StokExport($barang), 'laporan-stok-' . date('Ymd') . '.xlsx');
+            return Excel::download(
+                new StokExport($barang, $request->kategori, $request->status),
+                'laporan-stok-' . date('Ymd') . '.xlsx'
+            );
         }
 
         if ($request->export === 'pdf') {
@@ -68,7 +71,10 @@ class LaporanController extends Controller
         $totalJumlah = $data->sum('jumlah');
 
         if ($request->export === 'excel') {
-            return Excel::download(new BarangMasukExport($data), 'laporan-masuk-' . date('Ymd') . '.xlsx');
+            return Excel::download(
+                new BarangMasukExport($data, $request->dari, $request->sampai, $request->kategori),
+                'laporan-masuk-' . date('Ymd') . '.xlsx'
+            );
         }
 
         if ($request->export === 'pdf') {
@@ -106,8 +112,14 @@ class LaporanController extends Controller
 
         $data = $query->orderByDesc('tanggal_keluar')->get();
 
+        $dari = $request->filled('dari') ? $request->dari : now()->subDays(30)->format('Y-m-d');
+        $sampai = $request->filled('sampai') ? $request->sampai : now()->format('Y-m-d');
+
         if ($request->export === 'excel') {
-            return Excel::download(new BarangKeluarExport($data), 'laporan-keluar-' . date('Ymd') . '.xlsx');
+            return Excel::download(
+                new BarangKeluarExport($data, $dari, $sampai, $request->kategori, $request->status),
+                'laporan-keluar-' . date('Ymd') . '.xlsx'
+            );
         }
 
         if ($request->export === 'pdf') {
@@ -179,9 +191,14 @@ class LaporanController extends Controller
             ->get();
 
         return view('laporan.statistik', compact(
-            'labels', 'dataMasuk', 'dataKeluar',
-            'topKeluar', 'stokMenipis', 'toolsDipinjam',
-            'distribusiKategori', 'periode'
+            'labels',
+            'dataMasuk',
+            'dataKeluar',
+            'topKeluar',
+            'stokMenipis',
+            'toolsDipinjam',
+            'distribusiKategori',
+            'periode'
         ));
     }
 

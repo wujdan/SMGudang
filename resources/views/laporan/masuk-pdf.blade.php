@@ -54,6 +54,18 @@
     @php
         $dari = request('dari') ?? \Carbon\Carbon::now()->subDays(30)->format('Y-m-d');
         $sampai = request('sampai') ?? \Carbon\Carbon::now()->format('Y-m-d');
+        $kategori = request('kategori');
+        if ($kategori === 'cons') {
+            $kategoriLabel = 'Consumable';
+        } elseif ($kategori === 'material') {
+            $kategoriLabel = 'Material';
+        } elseif ($kategori === 'tools') {
+            $kategoriLabel = 'Tools';
+        } elseif ($kategori) {
+            $kategoriLabel = strtoupper($kategori);
+        } else {
+            $kategoriLabel = 'SEMUA';
+        }
     @endphp
 
     <div style="font-size: 12px; margin-bottom: 10px;">
@@ -66,7 +78,7 @@
 
         <div>
             <strong>Kategori:</strong>
-            {{ request('kategori') ? strtoupper(request('kategori')) : 'SEMUA' }}
+            {{ $kategoriLabel }}
         </div>
     </div>
     <!-- TABEL -->

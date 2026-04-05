@@ -78,6 +78,12 @@
 
                     <div class="grid-2">
                         <div class="form-group">
+                            <label class="form-label">Stok Minimum (Alert)</label>
+                            <input type="number" name="stok_minimum" class="form-control"
+                                value="{{ old('stok_minimum', 5) }}" min="0">
+                            <div class="form-hint">Sistem alert jika stok ≤ nilai ini</div>
+                        </div>
+                        <div class="form-group">
                             <label class="form-label">Foto Barang</label>
                             <input type="file" name="foto" class="form-control" accept="image/*"
                                 onchange="previewImg(this)">
