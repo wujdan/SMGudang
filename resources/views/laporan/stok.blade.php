@@ -45,7 +45,6 @@
                         <th>Kategori</th>
                         <th>Satuan</th>
                         <th>Stok</th>
-                        <th>Min Stok</th>
                         <th>Status</th>
                         @if (request('kategori') == 'tools' || !request('kategori'))
                             <th>Dipinjam</th>
@@ -69,7 +68,6 @@
                                     {{ $b->stok }}
                                 </span>
                             </td>
-                            <td>{{ $b->stok_minimum }}</td>
                             <td>
                                 @if ($b->stok == 0)
                                     <span class="badge badge-danger">HABIS</span>

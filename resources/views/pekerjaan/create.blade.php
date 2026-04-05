@@ -2,12 +2,7 @@
 @section('title', 'Buat Pekerjaan Baru')
 
 @section('content')
-    <div style="max-width: 700px;">
-        <div style="margin-bottom: 20px;">
-            <a href="{{ route('pekerjaan.index') }}" class="btn btn-secondary btn-sm">
-                <i class="fa-solid fa-arrow-left"></i> Kembali
-            </a>
-        </div>
+    <div>
         <div class="card">
             <div class="card-header">
                 <h3><i class="fa-solid fa-hard-hat" style="color: var(--primary); margin-right: 8px;"></i>Buat Pekerjaan Baru

@@ -2,12 +2,12 @@
 @section('title', 'Tambah Barang')
 
 @section('content')
-
-    <a href="{{ route('barang.index') }}" class="back-link">
+    <a href="{{ route('barang.index') }}" class="back-link" style="margin-bottom: 15px; display: inline-block;">
         <i class="fa-solid fa-chevron-left"></i> Kembali ke Data Barang
     </a>
 
-    <div style="max-width:680px;">
+
+    <div>
         <div class="card">
             <div class="card-header">
                 <h3><i class="fa-solid fa-plus" style="color:var(--accent);"></i> Tambah Barang Baru</h3>
@@ -47,20 +47,22 @@
 
                     <div class="grid-2">
                         <div class="form-group">
-                            <label class="form-label">Satuan <span style="color:var(--danger);">*</span></label>
-                            <input type="text" name="satuan" class="form-control" value="{{ old('satuan') }}"
-                                placeholder="pcs / kg / unit / set / roll..." list="satuan-list" required>
-                            <datalist id="satuan-list">
-                                <option value="pcs">
-                                <option value="kg">
-                                <option value="liter">
-                                <option value="roll">
-                                <option value="unit">
-                                <option value="set">
-                                <option value="lembar">
-                                <option value="batang">
-                                <option value="meter">
-                            </datalist>
+                            <label class="form-label">
+                                Satuan <span style="color:var(--danger);">*</span>
+                            </label>
+
+                            <select name="satuan" class="form-control" required>
+                                <option value="">-- Pilih Satuan --</option>
+                                <option value="pcs" {{ old('satuan') == 'pcs' ? 'selected' : '' }}>pcs</option>
+                                <option value="kg" {{ old('satuan') == 'kg' ? 'selected' : '' }}>kg</option>
+                                <option value="liter" {{ old('satuan') == 'liter' ? 'selected' : '' }}>liter</option>
+                                <option value="roll" {{ old('satuan') == 'roll' ? 'selected' : '' }}>roll</option>
+                                <option value="unit" {{ old('satuan') == 'unit' ? 'selected' : '' }}>unit</option>
+                                <option value="set" {{ old('satuan') == 'set' ? 'selected' : '' }}>set</option>
+                                <option value="lembar" {{ old('satuan') == 'lembar' ? 'selected' : '' }}>lembar</option>
+                                <option value="batang" {{ old('satuan') == 'batang' ? 'selected' : '' }}>batang</option>
+                                <option value="meter" {{ old('satuan') == 'meter' ? 'selected' : '' }}>meter</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
@@ -75,13 +77,6 @@
                     </div>
 
                     <div class="grid-2">
-                        <div class="form-group">
-                            <label class="form-label">Stok Minimum (Alert)</label>
-                            <input type="number" name="stok_minimum" class="form-control"
-                                value="{{ old('stok_minimum', 5) }}" min="0">
-                            <div class="form-hint">Sistem alert jika stok ≤ nilai ini</div>
-                        </div>
-
                         <div class="form-group">
                             <label class="form-label">Foto Barang</label>
                             <input type="file" name="foto" class="form-control" accept="image/*"

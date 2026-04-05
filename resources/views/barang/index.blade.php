@@ -251,7 +251,6 @@
                         <th style="width:110px;">Kategori</th>
                         <th class="col-satuan" style="width:80px;">Satuan</th>
                         <th style="width:80px;">Stok</th>
-                        <th class="col-min" style="width:60px;">Min</th>
                         <th class="col-status" style="width:95px;">Status</th>
                         <th style="width:100px; text-align:center;">Aksi</th>
                     </tr>
@@ -315,10 +314,6 @@
                                     <div class="stok-pinjam">{{ $b->stok_dipinjam }} dipinjam</div>
                                 @endif
                             </td>
-
-                            {{-- Min --}}
-                            <td class="col-min item-sub">{{ $b->stok_minimum }}</td>
-
                             {{-- Status --}}
                             <td class="col-status">
                                 @if ($b->stok == 0)
