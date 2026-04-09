@@ -1,26 +1,19 @@
 @extends('layouts.app')
-@section('title', 'Manajemen Pekerjaan')
+@section('title', 'Barang Keluar ')
 
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3><i class="fa-solid fa-hard-hat" style="color: var(--primary); margin-right: 8px;"></i>Daftar Pekerjaan</h3>
-            <a href="{{ route('pekerjaan.create') }}" class="btn btn-dark">
-                <i class="fa-solid fa-plus"></i> Buat Pekerjaan Baru
-            </a>
+            <h3><i class="fa-solid fa-truck-ramp-box" style="color: var(--primary); margin-right: 8px;"></i>Barang Keluar </h3>
+            <p style="font-size: 13px; color: var(--muted); margin: 4px 0 0 0;">Pilih pekerjaan aktif untuk mencatat barang keluar</p>
         </div>
         <div class="card-body" style="padding-bottom: 0;">
             <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
                 <input type="text" name="search" class="form-control" placeholder="Cari nama pekerjaan / PIC..."
                     value="{{ request('search') }}" style="flex: 1; min-width: 200px;">
-                <select name="status" class="form-control" style="width: 150px;">
-                    <option value="">Semua Status</option>
-                    <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                    <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                </select>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Cari</button>
-                @if (request()->anyFilled(['search', 'status']))
-                    <a href="{{ route('pekerjaan.index') }}" class="btn btn-secondary">Reset</a>
+                @if (request()->anyFilled(['search']))
+                    <a href="{{ route('barang-keluar.index') }}" class="btn btn-secondary">Reset</a>
                 @endif
             </form>
         </div>
@@ -34,7 +27,6 @@
                         <th>Lokasi</th>
                         <th>Tgl Mulai</th>
                         <th>Tools Aktif</th>
-                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -55,35 +47,16 @@
                                 @endif
                             </td>
                             <td>
-                                <span class="badge {{ $p->status == 'aktif' ? 'badge-warning' : 'badge-success' }}">
-                                    {{ strtoupper($p->status) }}
-                                </span>
-                            </td>
-                            <td>
-                                <div style="display: flex; gap: 4px;">
-                                    <a href="{{ route('pekerjaan.show', $p) }}" class="btn btn-xs btn-secondary"
-                                        title="Detail & Tambah Barang">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('pekerjaan.edit', $p) }}" class="btn btn-sm btn-warning"
-                                        title="Edit">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </a>
-                                    <form action="{{ route('pekerjaan.destroy', $p) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pekerjaan ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                                <a href="{{ route('barang-keluar.create', $p) }}" class="btn btn-sm btn-primary">
+                                    <i class="fa-solid fa-plus"></i> Tambah Barang Keluar
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="empty-state"><i class="fa-solid fa-hard-hat"></i>
-                                    <p>Belum ada pekerjaan</p>
+                                    <p>Tidak ada pekerjaan aktif</p>
                                 </div>
                             </td>
                         </tr>

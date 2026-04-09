@@ -2,10 +2,11 @@
 @section('title', 'Edit Barang')
 
 @section('content')
-    <a href="{{ route('barang.index') }}" class="back-link" style="margin-bottom: 15px; display: inline-block;">
-        <i class="fa-solid fa-chevron-left"></i> Kembali ke Data Barang
-    </a>
-
+    <div style="margin-bottom: 20px;">
+        <a href="{{ route('barang.index') }}" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Data Barang
+        </a>
+    </div>
     <div>
         <div class="card">
             <div class="card-header">

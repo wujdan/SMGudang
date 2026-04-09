@@ -28,6 +28,11 @@ Route::middleware('auth')->group(function () {
     // Barang Masuk
     Route::resource('barang-masuk', BarangMasukController::class)->except(['show', 'edit', 'update']);
 
+    // Barang Keluar
+    Route::get('barang-keluar', [\App\Http\Controllers\BarangKeluarController::class, 'index'])->name('barang-keluar.index');
+    Route::get('barang-keluar/{pekerjaan}/create', [\App\Http\Controllers\BarangKeluarController::class, 'create'])->name('barang-keluar.create');
+    Route::post('barang-keluar/{pekerjaan}', [\App\Http\Controllers\BarangKeluarController::class, 'store'])->name('barang-keluar.store');
+
     // Pekerjaan & Cart
     Route::resource('pekerjaan', PekerjaanController::class);
     Route::post('/pekerjaan/{pekerjaan}/items', [PekerjaanController::class, 'addItem'])->name('pekerjaan.add-item');

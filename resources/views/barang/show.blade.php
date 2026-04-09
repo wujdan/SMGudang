@@ -3,9 +3,11 @@
 
 @section('content')
 
-    <a href="{{ route('barang.index') }}" class="back-link">
-        <i class="fa-solid fa-chevron-left"></i> Kembali ke Data Barang
-    </a>
+    <div style="margin-bottom: 20px;">
+        <a href="{{ route('barang.index') }}" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Data Barang
+        </a>
+    </div>
 
     <div class="grid-2" style="align-items:start;">
 

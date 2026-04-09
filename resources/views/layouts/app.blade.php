@@ -1144,8 +1144,8 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('pekerjaan.create') }}"
-                    class="{{ request()->routeIs('pekerjaan.create') ? 'active' : '' }}">
+                <a href="{{ route('barang-keluar.index') }}"
+                    class="{{ request()->routeIs('barang-keluar.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-right-from-bracket"></i> Barang Keluar
                 </a>
             </li>

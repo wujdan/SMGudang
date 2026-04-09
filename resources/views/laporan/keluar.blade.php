@@ -17,12 +17,12 @@
             <form method="GET"
                 style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end;">
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Dari</label>
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Dari Tanggal</label>
                     <input type="date" name="dari" class="form-control"
                         value="{{ request('dari', now()->subDays(30)->format('Y-m-d')) }}" style="width: 160px;">
                 </div>
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Sampai</label>
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Sampai Tanggal</label>
                     <input type="date" name="sampai" class="form-control"
                         value="{{ request('sampai', now()->format('Y-m-d')) }}" style="width: 160px;">
                 </div>

@@ -204,18 +204,60 @@ class LaporanController extends Controller
 
     public function rekap(Request $request)
     {
+        // Default tanggal (hanya untuk tampilan, bukan memaksa query)
+        $dari = $request->input('dari', now()->subDays(30)->format('Y-m-d'));
+        $sampai = $request->input('sampai', now()->format('Y-m-d'));
+
         $query = Pekerjaan::with(['transaksi.barang']);
 
+        // 🔍 Filter search
         if ($request->filled('search')) {
             $query->where('nama_pekerjaan', 'like', '%' . $request->search . '%');
         }
 
+        // 🔍 Filter status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $pekerjaan = $query->orderByDesc('tanggal_mulai')->paginate(10)->withQueryString();
+        // 📅 Filter tanggal — selalu aktif, pakai default jika tidak diisi
+        $query->whereBetween('tanggal_mulai', [$dari, $sampai]);
 
-        return view('laporan.rekap', compact('pekerjaan'));
+        $export = $request->get('export');
+
+        // 📊 Ambil data
+        if ($export === 'pdf' || $export === 'excel') {
+            $pekerjaan = $query->orderByDesc('tanggal_mulai')->get();
+        } else {
+            $pekerjaan = $query->orderByDesc('tanggal_mulai')->paginate(10)->withQueryString();
+        }
+
+        // 📄 Export PDF
+        if ($export === 'pdf') {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('laporan.rekap_pdf', [
+                'pekerjaan' => $pekerjaan,
+                'dari' => $dari,
+                'sampai' => $sampai,
+                'search' => $request->search,
+                'status' => $request->status,
+            ])->setPaper('a4', 'landscape');
+
+            return $pdf->download('rekap-pekerjaan.pdf');
+        }
+
+        // 📊 Export Excel
+        if ($export === 'excel') {
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                new \App\Exports\PekerjaanExport(
+                    $pekerjaan,
+                    $dari,
+                    $sampai,
+                    $request->search,
+                    $request->status
+                ),
+                'rekap-pekerjaan.xlsx'
+            );
+        }
+        return view('laporan.rekap', compact('pekerjaan', 'dari', 'sampai'));
     }
 }
