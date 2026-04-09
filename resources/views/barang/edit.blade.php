@@ -34,31 +34,40 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">
-                                Satuan <span style="color:var(--danger);">*</span>
-                            </label>
-
-                            <select name="satuan" class="form-control" required>
-                                <option value="">-- Pilih Satuan --</option>
-                                <option value="pcs" {{ old('satuan') == 'pcs' ? 'selected' : '' }}>pcs</option>
-                                <option value="kg" {{ old('satuan') == 'kg' ? 'selected' : '' }}>kg</option>
-                                <option value="liter" {{ old('satuan') == 'liter' ? 'selected' : '' }}>liter</option>
-                                <option value="roll" {{ old('satuan') == 'roll' ? 'selected' : '' }}>roll</option>
-                                <option value="unit" {{ old('satuan') == 'unit' ? 'selected' : '' }}>unit</option>
-                                <option value="set" {{ old('satuan') == 'set' ? 'selected' : '' }}>set</option>
-                                <option value="lembar" {{ old('satuan') == 'lembar' ? 'selected' : '' }}>lembar</option>
-                                <option value="batang" {{ old('satuan') == 'batang' ? 'selected' : '' }}>batang</option>
-                                <option value="meter" {{ old('satuan') == 'meter' ? 'selected' : '' }}>meter</option>
+                            <label class="form-label">Kategori <span style="color:var(--danger);">*</span></label>
+                            <select name="kategori" class="form-control {{ $errors->has('kategori') ? 'is-invalid' : '' }}" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                <option value="tools" {{ old('kategori', $barang->kategori) == 'tools' ? 'selected' : '' }}>Tools</option>
+                                <option value="cons" {{ old('kategori', $barang->kategori) == 'cons' ? 'selected' : '' }}>Consumable</option>
+                                <option value="material" {{ old('kategori', $barang->kategori) == 'material' ? 'selected' : '' }}>Material</option>
                             </select>
+                            @error('kategori')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
-                            <label class="form-label">Stok Saat Ini</label>
-                            <input type="text" class="form-control" value="{{ $barang->stok }} {{ $barang->satuan }}"
-                                disabled>
-                            <div class="form-hint">Ubah stok lewat transaksi masuk / keluar</div>
+                            <label class="form-label">
+                                Satuan <span style="color:var(--danger);">*</span>
+                            </label>
+
+                            <select name="satuan" class="form-control {{ $errors->has('satuan') ? 'is-invalid' : '' }}" required>
+                                <option value="">-- Pilih Satuan --</option>
+                                <option value="pcs" {{ old('satuan', $barang->satuan) == 'pcs' ? 'selected' : '' }}>pcs</option>
+                                <option value="kg" {{ old('satuan', $barang->satuan) == 'kg' ? 'selected' : '' }}>kg</option>
+                                <option value="liter" {{ old('satuan', $barang->satuan) == 'liter' ? 'selected' : '' }}>liter</option>
+                                <option value="roll" {{ old('satuan', $barang->satuan) == 'roll' ? 'selected' : '' }}>roll</option>
+                                <option value="unit" {{ old('satuan', $barang->satuan) == 'unit' ? 'selected' : '' }}>unit</option>
+                                <option value="set" {{ old('satuan', $barang->satuan) == 'set' ? 'selected' : '' }}>set</option>
+                                <option value="lembar" {{ old('satuan', $barang->satuan) == 'lembar' ? 'selected' : '' }}>lembar</option>
+                                <option value="batang" {{ old('satuan', $barang->satuan) == 'batang' ? 'selected' : '' }}>batang</option>
+                                <option value="meter" {{ old('satuan', $barang->satuan) == 'meter' ? 'selected' : '' }}>meter</option>
+                            </select>
+                            @error('satuan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="form-group">
@@ -67,7 +76,14 @@
                                 value="{{ old('stok_minimum', $barang->stok_minimum) }}" min="0">
                         </div>
                     </div>
-                    <div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Stok Saat Ini</label>
+                            <input type="text" class="form-control" value="{{ $barang->stok }} {{ $barang->satuan }}"
+                                disabled>
+                            <div class="form-hint">Ubah stok lewat transaksi masuk / keluar</div>
+                        </div>
+
                         <div class="form-group">
                             <label class="form-label">Foto Barang</label>
                             @if ($barang->foto)

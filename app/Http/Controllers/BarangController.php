@@ -86,6 +86,7 @@ class BarangController extends Controller
     {
         $validated = $request->validate([
             'nama_barang' => 'required|string|max:255',
+            'kategori' => 'required|in:cons,material,tools',
             'satuan' => 'required|string|max:50',
             'stok_minimum' => 'required|integer|min:0',
             'foto' => 'nullable|image|max:2048',

@@ -17,7 +17,7 @@
                 @endif
             </form>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap" style="margin-bottom: 0;">
             <table>
                 <thead>
                     <tr>
@@ -64,7 +64,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="card-body" style="padding-top: 12px;">
+        <div class="card-body" style="padding: 10px 16px 8px;">
             {{ $pekerjaan->links('vendor.pagination.custom') }}
         </div>
     </div>

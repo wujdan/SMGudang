@@ -37,7 +37,7 @@
                         </div>
                         <div class="tools-only" style="flex: 1; display: none;">
                             <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Rencana Kembali</label>
-                            <input type="date" name="items[0][tgl_kembali_rencana]" class="form-control" min="{{ date('Y-m-d') }}">
+                            <input type="date" name="items[0][tgl_kembali_rencana]" class="form-control" min="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}" required>
                         </div>
                         <div style="flex: 2;">
                             <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Keterangan</label>
@@ -54,7 +54,7 @@
                     <i class="fa-solid fa-plus"></i> Tambah Barang Lain
                 </button>
             </div>
-            <div class="card-footer" style="display: flex; gap: 8px;">
+            <div class="card-footer" style="display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px;">
                 <button type="submit" class="btn btn-primary">
                     <i class="fa-solid fa-save"></i> Simpan Barang Keluar
                 </button>
@@ -76,7 +76,11 @@
                 if (name) {
                     el.setAttribute('name', name.replace('[0]', '[' + itemIndex + ']'));
                 }
-                el.value = '';
+                if (el.type === 'date') {
+                    el.value = new Date().toISOString().split('T')[0];
+                } else {
+                    el.value = '';
+                }
             });
 
             // Show remove button
