@@ -254,6 +254,11 @@
                                     <input type="number" name="items[0][jumlah]" class="form-control" min="1"
                                         value="1" required>
                                 </div>
+                                <div style="width: 150px;">
+                                    <label class="form-label">Tanggal Keluar</label>
+                                    <input type="date" name="items[0][tgl_keluar]" class="form-control"
+                                        value="{{ date('Y-m-d') }}" required>
+                                </div>
                                 <div style="padding-top: 26px;">
                                     <button type="button" onclick="removeItem(this)" class="btn btn-sm btn-danger">
                                         <i class="fa-solid fa-trash"></i>

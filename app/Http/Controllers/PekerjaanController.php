@@ -91,82 +91,79 @@ class PekerjaanController extends Controller
 
     // Tambah item ke pekerjaan (cart submit)
     public function addItem(Request $request, Pekerjaan $pekerjaan)
-    {
-        if ($pekerjaan->status !== 'aktif') {
-            return back()->withErrors(['error' => 'Pekerjaan sudah selesai!']);
-        }
-
-        $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.barang_id' => 'required|exists:barangs,id',
-            'items.*.jumlah' => 'required|integer|min:1',
-            'items.*.tgl_kembali_rencana' => 'nullable|date|after_or_equal:today',
-            'items.*.keterangan' => 'nullable|string',
-        ]);
-
-        $errors = [];
-
-        DB::transaction(function () use ($validated, $pekerjaan, &$errors) {
-            foreach ($validated['items'] as $item) {
-                $barang = Barang::lockForUpdate()->find($item['barang_id']);
-
-                if ($barang->stok < $item['jumlah']) {
-                    $errors[] = "Stok {$barang->nama_barang} tidak cukup! (Tersedia: {$barang->stok} {$barang->satuan})";
-                    return;
-                }
-
-                // Cek apakah sudah ada transaksi barang yang sama di tanggal hari ini
-                // Khusus cons & material (status_pinjam === null), tools selalu baris baru
-                $existing = null;
-                if (!$barang->isTools()) {
-                    $existing = TransaksiPekerjaan::where('pekerjaan_id', $pekerjaan->id)
-                        ->where('barang_id', $item['barang_id'])
-                        ->whereDate('tanggal_keluar', today())
-                        ->whereNull('status_pinjam')
-                        ->first();
-                }
-
-                if ($existing) {
-                    // ✅ Sudah ada di tanggal yang sama → tambah jumlah saja
-                    $selisih = $item['jumlah'];
-
-                    $existing->update([
-                        'jumlah'      => $existing->jumlah + $selisih,
-                        'stok_sesudah' => $existing->stok_sebelum - ($existing->jumlah + $selisih),
-                        'keterangan'  => $item['keterangan'] ?? $existing->keterangan,
-                    ]);
-
-                    $barang->update(['stok' => $barang->stok - $selisih]);
-                } else {
-                    // 📋 Belum ada → buat baris baru
-                    $stokSebelum = $barang->stok;
-                    $stokSesudah = $stokSebelum - $item['jumlah'];
-
-                    TransaksiPekerjaan::create([
-                        'no_transaksi'        => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
-                        'pekerjaan_id'        => $pekerjaan->id,
-                        'barang_id'           => $item['barang_id'],
-                        'jumlah'              => $item['jumlah'],
-                        'stok_sebelum'        => $stokSebelum,
-                        'stok_sesudah'        => $stokSesudah,
-                        'tanggal_keluar'      => today(),
-                        'tgl_kembali_rencana' => $barang->isTools() ? ($item['tgl_kembali_rencana'] ?? null) : null,
-                        'status_pinjam'       => $barang->isTools() ? 'dipinjam' : null,
-                        'keterangan'          => $item['keterangan'] ?? null,
-                    ]);
-
-                    $barang->update(['stok' => $stokSesudah]);
-                }
-            }
-        });
-
-        if (!empty($errors)) {
-            return back()->withErrors($errors);
-        }
-
-        return redirect()->route('pekerjaan.show', $pekerjaan)
-            ->with('success', 'Barang berhasil dicatat keluar!');
+{
+    if ($pekerjaan->status !== 'aktif') {
+        return back()->withErrors(['error' => 'Pekerjaan sudah selesai!']);
     }
+
+    $validated = $request->validate([
+        'items'                        => 'required|array|min:1',
+        'items.*.barang_id'            => 'required|exists:barangs,id',
+        'items.*.jumlah'               => 'required|integer|min:1',
+        'items.*.tgl_keluar'           => 'required|date',  // ← tambah
+        'items.*.tgl_kembali_rencana'  => 'nullable|date|after_or_equal:today',
+        'items.*.keterangan'           => 'nullable|string',
+    ]);
+
+    $errors = [];
+
+    DB::transaction(function () use ($validated, $pekerjaan, &$errors) {
+        foreach ($validated['items'] as $item) {
+            $barang = Barang::lockForUpdate()->find($item['barang_id']);
+
+            if ($barang->stok < $item['jumlah']) {
+                $errors[] = "Stok {$barang->nama_barang} tidak cukup! (Tersedia: {$barang->stok} {$barang->satuan})";
+                return;
+            }
+
+            $existing = null;
+            if (!$barang->isTools()) {
+                $existing = TransaksiPekerjaan::where('pekerjaan_id', $pekerjaan->id)
+                    ->where('barang_id', $item['barang_id'])
+                    ->whereDate('tanggal_keluar', $item['tgl_keluar'])  // ← ubah
+                    ->whereNull('status_pinjam')
+                    ->first();
+            }
+
+            if ($existing) {
+                $selisih = $item['jumlah'];
+
+                $existing->update([
+                    'jumlah'       => $existing->jumlah + $selisih,
+                    'stok_sesudah' => $existing->stok_sebelum - ($existing->jumlah + $selisih),
+                    'keterangan'   => $item['keterangan'] ?? $existing->keterangan,
+                ]);
+
+                $barang->update(['stok' => $barang->stok - $selisih]);
+            } else {
+                $stokSebelum = $barang->stok;
+                $stokSesudah = $stokSebelum - $item['jumlah'];
+
+                TransaksiPekerjaan::create([
+                    'no_transaksi'        => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
+                    'pekerjaan_id'        => $pekerjaan->id,
+                    'barang_id'           => $item['barang_id'],
+                    'jumlah'              => $item['jumlah'],
+                    'stok_sebelum'        => $stokSebelum,
+                    'stok_sesudah'        => $stokSesudah,
+                    'tanggal_keluar'      => $item['tgl_keluar'],  // ← ubah
+                    'tgl_kembali_rencana' => $barang->isTools() ? ($item['tgl_kembali_rencana'] ?? null) : null,
+                    'status_pinjam'       => $barang->isTools() ? 'dipinjam' : null,
+                    'keterangan'          => $item['keterangan'] ?? null,
+                ]);
+
+                $barang->update(['stok' => $stokSesudah]);
+            }
+        }
+    });
+
+    if (!empty($errors)) {
+        return back()->withErrors($errors);
+    }
+
+    return redirect()->route('pekerjaan.show', $pekerjaan)
+        ->with('success', 'Barang berhasil dicatat keluar!');
+}
 
     // Edit item transaksi (ubah jumlah/keterangan)
     public function updateItem(Request $request, TransaksiPekerjaan $transaksi)

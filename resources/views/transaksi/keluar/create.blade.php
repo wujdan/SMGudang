@@ -24,16 +24,27 @@
                 <div id="items-container">
                     <div class="item-row"
                         style="display: flex; gap: 10px; align-items: end; margin-bottom: 16px; padding: 12px; border: 1px solid var(--border); border-radius: 6px;">
-                        <div style="flex: 1;">
-                            <label class="form-label">Barang</label>
-                            <input type="text" class="form-control barang-input" placeholder="Ketik nama barang..."
-                                oninput="searchBarang(this)">
-                            <input type="hidden" name="items[0][barang_id]" class="barang-id">
-                            <div class="suggestions" style="border:1px solid #ddd; max-height:150px; overflow:auto;"></div>
+                        <div style="flex: 2;">
+                            <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Barang</label>
+                            <div style="position: relative;">
+                                <input type="text" class="form-control barang-input" placeholder="Ketik nama barang..."
+                                    oninput="searchBarang(this)" autocomplete="off">
+
+                                <input type="hidden" name="items[0][barang_id]" class="barang-id">
+
+                                <div class="suggestions"
+                                    style="position:absolute; background:#fff; width:100%; z-index:10; border:1px solid #ddd;">
+                                </div>
+                            </div>
                         </div>
                         <div style="flex: 1;">
                             <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Jumlah</label>
                             <input type="number" name="items[0][jumlah]" class="form-control" min="1" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Tanggal Keluar</label>
+                            <input type="date" name="items[0][tgl_keluar]" class="form-control"
+                                value="{{ date('Y-m-d') }}" required>
                         </div>
                         <div class="tools-only" style="flex: 1; display: none;">
                             <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Rencana Kembali</label>
@@ -51,9 +62,11 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" id="add-item" class="btn btn-outline-primary btn-sm">
-                    <i class="fa-solid fa-plus"></i> Tambah Barang Lain
-                </button>
+                <div style="margin-top:10px;">
+                    <button type="button" id="add-item" class="btn btn-outline-primary btn-sm">
+                        <i class="fa-solid fa-plus"></i> Tambah Barang Lain
+                    </button>
+                </div>
             </div>
             <div class="card-footer" style="display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px;">
                 <button type="submit" class="btn btn-primary">
@@ -70,6 +83,8 @@
         document.getElementById('add-item').addEventListener('click', function() {
             const container = document.getElementById('items-container');
             const newRow = container.querySelector('.item-row').cloneNode(true);
+            newRow.querySelector('.suggestions').innerHTML = '';
+            newRow.querySelector('.barang-id').value = '';
 
             // Update names
             newRow.querySelectorAll('input').forEach(el => {
@@ -90,26 +105,13 @@
             container.appendChild(newRow);
             itemIndex++;
         });
-
-        // Show/hide tgl kembali for tools
-        document.addEventListener('change', function(e) {
-            if (e.target.matches('select[name*="barang_id"]')) {
-                const row = e.target.closest('.item-row');
-                const option = e.target.options[e.target.selectedIndex];
-                const isTools = option?.getAttribute('data-is-tools') === '1';
-                const toolsField = row.querySelector('.tools-only');
-                if (toolsField) {
-                    toolsField.style.display = isTools ? 'block' : 'none';
-                }
-            }
-        });
     </script>
     <script>
         const barangList = @json($barang);
 
         function searchBarang(input) {
             let keyword = input.value.toLowerCase();
-            let container = input.nextElementSibling.nextElementSibling;
+            let container = input.parentElement.querySelector('.suggestions');
             container.innerHTML = '';
 
             if (keyword.length < 1) return;
@@ -127,10 +129,10 @@
 
                 div.onclick = function() {
                     input.value =
-                    `[${b.kategori.toUpperCase()}] ${b.nama_barang} (Stok: ${b.stok} ${b.satuan})`;
-                    input.nextElementSibling.value = b.id;
+                        `[${b.kategori.toUpperCase()}] ${b.nama_barang} (Stok: ${b.stok} ${b.satuan})`;
 
-                    // ✅ FIX CLASS
+                    input.parentElement.querySelector('.barang-id').value = b.id;
+
                     let row = input.closest('.item-row');
                     let toolsFields = row.querySelector('.tools-only');
 
@@ -146,5 +148,15 @@
                 container.appendChild(div);
             });
         }
+    </script>
+    <script>
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-item') || e.target.closest('.remove-item')) {
+                const row = e.target.closest('.item-row');
+                if (row) {
+                    row.remove();
+                }
+            }
+        });
     </script>
 @endsection
