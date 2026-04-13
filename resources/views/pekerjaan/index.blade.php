@@ -69,7 +69,9 @@
                                         title="Edit">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
-                                    <form action="{{ route('pekerjaan.destroy', $p) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pekerjaan ini?')">
+                                    <form action="{{ route('pekerjaan.destroy', $p) }}" method="POST"
+                                        style="display: inline;"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus pekerjaan ini?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger" title="Hapus">

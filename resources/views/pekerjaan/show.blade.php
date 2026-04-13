@@ -29,9 +29,9 @@
                     <i class="fa-solid fa-cart-plus"></i> Tambah Barang
                 </button>
             @endif
-            <a href="{{ route('pekerjaan.edit', $pekerjaan) }}" class="btn btn-warning">
+            {{-- <a href="{{ route('pekerjaan.edit', $pekerjaan) }}" class="btn btn-warning">tes
                 <i class="fa-solid fa-pen"></i>
-            </a>
+            </a> --}}
         </div>
     </div>
 
@@ -47,7 +47,7 @@
         <div class="card" style="margin-bottom: 20px;">
             <div class="card-header">
                 <h3><i class="fa-solid fa-screwdriver-wrench" style="color: var(--success); margin-right: 8px;"></i>Tools
-                    (Sistem Pinjam)</h3>
+                </h3>
                 <span class="badge badge-warning">{{ $tools->where('status_pinjam', 'dipinjam')->count() }} aktif
                     dipinjam</span>
             </div>
@@ -87,13 +87,23 @@
                                 <td>
                                     @if ($t->status_pinjam === 'dipinjam')
                                         <button
-                                            onclick="openReturnModal({{ $t->id }}, '{{ $t->barang->nama_barang }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
+                                            onclick="openReturnModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
                                             class="btn btn-sm btn-success">
                                             <i class="fa-solid fa-rotate-left"></i> Kembalikan
                                         </button>
                                     @else
-                                        <span style="color: var(--success); font-size: 12px;"><i
-                                                class="fa-solid fa-check"></i> Sudah Kembali</span>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <span style="color: var(--success); font-size: 12px;">
+                                                <i class="fa-solid fa-check"></i> Sudah Kembali
+                                            </span>
+                                            @if ($pekerjaan->status == 'aktif')
+                                                <button
+                                                    onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
+                                                    class="btn btn-sm btn-danger">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            @endif
+                                        </div>
                                     @endif
                                 </td>
                             </tr>
@@ -108,8 +118,7 @@
     @if ($cons->isNotEmpty())
         <div class="card" style="margin-bottom: 20px;">
             <div class="card-header">
-                <h3><i class="fa-solid fa-fire" style="color: var(--warning); margin-right: 8px;"></i>Consumables (Habis
-                    Pakai)</h3>
+                <h3><i class="fa-solid fa-fire" style="color: var(--warning); margin-right: 8px;"></i>Consumables</h3>
             </div>
             <div class="table-wrap">
                 <table>
@@ -120,6 +129,7 @@
                             <th>Satuan</th>
                             <th>Tanggal Keluar</th>
                             <th>Keterangan</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,6 +140,22 @@
                                 <td>{{ $t->barang->satuan }}</td>
                                 <td>{{ $t->tanggal_keluar->format('d/m/Y') }}</td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
+                                <td style="display: flex; gap: 6px;">
+                                    @if ($pekerjaan->status == 'aktif')
+                                        <button
+                                            onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
+                                            class="btn btn-sm btn-warning">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button
+                                            onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
+                                            class="btn btn-sm btn-danger">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    @else
+                                        <span style="color: var(--muted); font-size: 12px;">-</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -153,6 +179,7 @@
                             <th>Satuan</th>
                             <th>Tanggal Keluar</th>
                             <th>Keterangan</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -163,6 +190,22 @@
                                 <td>{{ $t->barang->satuan }}</td>
                                 <td>{{ $t->tanggal_keluar->format('d/m/Y') }}</td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
+                                <td style="display: flex; gap: 6px;">
+                                    @if ($pekerjaan->status == 'aktif')
+                                        <button
+                                            onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
+                                            class="btn btn-sm btn-warning">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button
+                                            onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
+                                            class="btn btn-sm btn-danger">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    @else
+                                        <span style="color: var(--muted); font-size: 12px;">-</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -289,6 +332,69 @@
             </form>
         </div>
     </div>
+
+    <!-- MODAL EDIT ITEM -->
+    <div class="modal-backdrop" id="modal-edit">
+        <div class="modal">
+            <div class="modal-header">
+                <h4><i class="fa-solid fa-pen" style="color: var(--warning); margin-right: 8px;"></i>Edit Item</h4>
+                <button class="btn-close" onclick="document.getElementById('modal-edit').classList.remove('show')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form method="POST" id="form-edit">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="alert alert-info" id="edit-info"></div>
+                    <div class="form-group">
+                        <label class="form-label">Jumlah <span style="color: var(--danger);">*</span></label>
+                        <input type="number" name="jumlah" id="edit-jumlah" class="form-control" min="1"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Keterangan</label>
+                        <input type="text" name="keterangan" id="edit-keterangan" class="form-control"
+                            placeholder="Opsional">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('modal-edit').classList.remove('show')">Batal</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fa-solid fa-check"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL HAPUS ITEM -->
+    <div class="modal-backdrop" id="modal-delete">
+        <div class="modal">
+            <div class="modal-header">
+                <h4><i class="fa-solid fa-triangle-exclamation"
+                        style="color: var(--danger); margin-right: 8px;"></i>Konfirmasi Hapus</h4>
+                <button class="btn-close" onclick="document.getElementById('modal-delete').classList.remove('show')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form method="POST" id="form-delete">
+                @csrf
+                @method('DELETE')
+                <div class="modal-body">
+                    <div class="alert alert-danger" id="delete-info"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('modal-delete').classList.remove('show')">Batal</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash"></i> Ya, Hapus Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -355,6 +461,22 @@
             document.getElementById('return-info').innerHTML =
                 `<i class="fa-solid fa-info-circle"></i> Mengembalikan: <strong>${nama}</strong> — ${jumlah} ${satuan}<br>Stok akan bertambah otomatis setelah dikonfirmasi.`;
             document.getElementById('modal-return').classList.add('show');
+        }
+
+        function openEditModal(id, nama, jumlah, keterangan) {
+            document.getElementById('form-edit').action = `/transaksi/${id}`;
+            document.getElementById('edit-info').innerHTML =
+                `<i class="fa-solid fa-info-circle"></i> Edit item: <strong>${nama}</strong>`;
+            document.getElementById('edit-jumlah').value = jumlah;
+            document.getElementById('edit-keterangan').value = keterangan;
+            document.getElementById('modal-edit').classList.add('show');
+        }
+
+        function openDeleteModal(id, nama, jumlah, satuan) {
+            document.getElementById('form-delete').action = `/transaksi/${id}`;
+            document.getElementById('delete-info').innerHTML =
+                `<i class="fa-solid fa-triangle-exclamation"></i> Hapus: <strong>${nama}</strong> — ${jumlah} ${satuan}`;
+            document.getElementById('modal-delete').classList.add('show');
         }
     </script>
 @endpush

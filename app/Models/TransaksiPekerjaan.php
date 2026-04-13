@@ -59,10 +59,17 @@ class TransaksiPekerjaan extends Model
         };
     }
 
-    public static function generateNoTransaksi(int $pekerjaanId): string
-    {
-        $date = date('Ymd');
-        $count = self::where('pekerjaan_id', $pekerjaanId)->count() + 1;
-        return 'TRX-' . $date . '-P' . str_pad($pekerjaanId, 3, '0', STR_PAD_LEFT) . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
-    }
+   public static function generateNoTransaksi(int $pekerjaanId): string
+{
+    $date = date('Ymd');
+    $prefix = 'TRX-' . $date . '-P' . str_pad($pekerjaanId, 3, '0', STR_PAD_LEFT) . '-';
+
+    $last = self::where('pekerjaan_id', $pekerjaanId)
+        ->where('no_transaksi', 'like', $prefix . '%')
+        ->max('no_transaksi');
+
+    $next = $last ? (intval(substr($last, strrpos($last, '-') + 1)) + 1) : 1;
+
+    return $prefix . str_pad($next, 3, '0', STR_PAD_LEFT);
+}
 }

@@ -110,29 +110,53 @@ class PekerjaanController extends Controller
             foreach ($validated['items'] as $item) {
                 $barang = Barang::lockForUpdate()->find($item['barang_id']);
 
-                // Cek stok cukup
                 if ($barang->stok < $item['jumlah']) {
                     $errors[] = "Stok {$barang->nama_barang} tidak cukup! (Tersedia: {$barang->stok} {$barang->satuan})";
                     return;
                 }
 
-                $stokSebelum = $barang->stok;
-                $stokSesudah = $stokSebelum - $item['jumlah'];
+                // Cek apakah sudah ada transaksi barang yang sama di tanggal hari ini
+                // Khusus cons & material (status_pinjam === null), tools selalu baris baru
+                $existing = null;
+                if (!$barang->isTools()) {
+                    $existing = TransaksiPekerjaan::where('pekerjaan_id', $pekerjaan->id)
+                        ->where('barang_id', $item['barang_id'])
+                        ->whereDate('tanggal_keluar', today())
+                        ->whereNull('status_pinjam')
+                        ->first();
+                }
 
-                TransaksiPekerjaan::create([
-                    'no_transaksi' => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
-                    'pekerjaan_id' => $pekerjaan->id,
-                    'barang_id' => $item['barang_id'],
-                    'jumlah' => $item['jumlah'],
-                    'stok_sebelum' => $stokSebelum,
-                    'stok_sesudah' => $stokSesudah,
-                    'tanggal_keluar' => today(),
-                    'tgl_kembali_rencana' => $barang->isTools() ? ($item['tgl_kembali_rencana'] ?? null) : null,
-                    'status_pinjam' => $barang->isTools() ? 'dipinjam' : null,
-                    'keterangan' => $item['keterangan'] ?? null,
-                ]);
+                if ($existing) {
+                    // ✅ Sudah ada di tanggal yang sama → tambah jumlah saja
+                    $selisih = $item['jumlah'];
 
-                $barang->update(['stok' => $stokSesudah]);
+                    $existing->update([
+                        'jumlah'      => $existing->jumlah + $selisih,
+                        'stok_sesudah' => $existing->stok_sebelum - ($existing->jumlah + $selisih),
+                        'keterangan'  => $item['keterangan'] ?? $existing->keterangan,
+                    ]);
+
+                    $barang->update(['stok' => $barang->stok - $selisih]);
+                } else {
+                    // 📋 Belum ada → buat baris baru
+                    $stokSebelum = $barang->stok;
+                    $stokSesudah = $stokSebelum - $item['jumlah'];
+
+                    TransaksiPekerjaan::create([
+                        'no_transaksi'        => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
+                        'pekerjaan_id'        => $pekerjaan->id,
+                        'barang_id'           => $item['barang_id'],
+                        'jumlah'              => $item['jumlah'],
+                        'stok_sebelum'        => $stokSebelum,
+                        'stok_sesudah'        => $stokSesudah,
+                        'tanggal_keluar'      => today(),
+                        'tgl_kembali_rencana' => $barang->isTools() ? ($item['tgl_kembali_rencana'] ?? null) : null,
+                        'status_pinjam'       => $barang->isTools() ? 'dipinjam' : null,
+                        'keterangan'          => $item['keterangan'] ?? null,
+                    ]);
+
+                    $barang->update(['stok' => $stokSesudah]);
+                }
             }
         });
 
@@ -142,6 +166,44 @@ class PekerjaanController extends Controller
 
         return redirect()->route('pekerjaan.show', $pekerjaan)
             ->with('success', 'Barang berhasil dicatat keluar!');
+    }
+
+    // Edit item transaksi (ubah jumlah/keterangan)
+    public function updateItem(Request $request, TransaksiPekerjaan $transaksi)
+    {
+        $request->validate([
+            'jumlah' => 'required|integer|min:1',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $transaksi) {
+                $barang = Barang::lockForUpdate()->find($transaksi->barang_id);
+
+                $selisih = $request->jumlah - $transaksi->jumlah;
+
+                if ($selisih > 0 && $barang->stok < $selisih) {
+                    throw new \Exception("Stok {$barang->nama_barang} tidak cukup! (Tersedia: {$barang->stok} {$barang->satuan})");
+                }
+
+                $barang->update(['stok' => $barang->stok - $selisih]);
+
+                $transaksi->update([
+                    'jumlah'       => $request->jumlah,
+                    'keterangan'   => $request->keterangan,
+                    'stok_sesudah' => $transaksi->stok_sebelum - $request->jumlah,
+                ]);
+            });
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Item berhasil diupdate!');
+    }
+
+    public function editItem(TransaksiPekerjaan $transaksi)
+    {
+        return view('transaksi.edit', compact('transaksi'));
     }
 
     // Konfirmasi pengembalian tools
@@ -172,6 +234,26 @@ class PekerjaanController extends Controller
 
         return back()->with('success', 'Tools berhasil dikembalikan! Stok sudah ditambahkan kembali.');
     }
+
+    public function destroyItem(TransaksiPekerjaan $transaksi)
+{
+    if ($transaksi->status_pinjam === 'dipinjam') {
+        return back()->withErrors(['error' => 'Tidak bisa hapus tools yang masih dipinjam!']);
+    }
+
+    DB::transaction(function () use ($transaksi) {
+        // Hanya rollback stok untuk cons/material (status_pinjam === null)
+        // Tools dikembalikan → stok sudah dikembalikan saat returnItem, tidak perlu rollback lagi
+        if ($transaksi->status_pinjam === null) {
+            $barang = Barang::lockForUpdate()->find($transaksi->barang_id);
+            $barang->update(['stok' => $barang->stok + $transaksi->jumlah]);
+        }
+
+        $transaksi->delete();
+    });
+
+    return back()->with('success', 'Item berhasil dihapus!');
+}
 
     public function destroy(Pekerjaan $pekerjaan)
     {

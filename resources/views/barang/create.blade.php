@@ -62,6 +62,8 @@
                                 <option value="lembar" {{ old('satuan') == 'lembar' ? 'selected' : '' }}>lembar</option>
                                 <option value="batang" {{ old('satuan') == 'batang' ? 'selected' : '' }}>batang</option>
                                 <option value="meter" {{ old('satuan') == 'meter' ? 'selected' : '' }}>meter</option>
+                                <option value="botol" {{ old('satuan') == 'botol' ? 'selected' : '' }}>botol</option>
+
                             </select>
                         </div>
 

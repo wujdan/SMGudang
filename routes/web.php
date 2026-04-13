@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('pekerjaan', PekerjaanController::class);
     Route::post('/pekerjaan/{pekerjaan}/items', [PekerjaanController::class, 'addItem'])->name('pekerjaan.add-item');
     Route::post('/transaksi/{transaksi}/return', [PekerjaanController::class, 'returnItem'])->name('transaksi.return');
+    Route::get('/transaksi/{transaksi}/edit', [PekerjaanController::class, 'editItem'])->name('transaksi.edit');
+    Route::put('/transaksi/{transaksi}', [PekerjaanController::class, 'updateItem'])->name('transaksi.update');
+    Route::delete('/transaksi/{transaksi}', [PekerjaanController::class, 'destroyItem'])->name('transaksi.delete'); // ← tambah ini
 
     // Laporan
     Route::prefix('laporan')->name('laporan.')->group(function () {

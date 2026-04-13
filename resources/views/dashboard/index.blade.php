@@ -284,11 +284,11 @@
                     <canvas id="chartAktivitas"></canvas>
                 </div>
             </div>
-            <div class="chart-footer">
+            {{-- <div class="chart-footer">
                 <button class="range-pill active" onclick="setRange(this, 7)">7H</button>
                 <button class="range-pill" onclick="setRange(this, 14)">14H</button>
                 <button class="range-pill" onclick="setRange(this, 30)">30H</button>
-            </div>
+            </div> --}}
         </div>
 
         {{-- Stok per Kategori --}}
