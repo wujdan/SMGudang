@@ -330,14 +330,6 @@
                 Masuk
             </button>
         </form>
-
-        <div class="hint-box">
-            <p>
-                <strong>🔑 Default Login</strong>
-                Email: admin@gudang.com<br>
-                Password: password
-            </p>
-        </div>
     </div>
 
 </body>
