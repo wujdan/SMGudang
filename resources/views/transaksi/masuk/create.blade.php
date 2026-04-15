@@ -23,13 +23,14 @@
                         <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
                             <div style="flex: 2; min-width: 200px;" class="form-group" style="margin-bottom: 0;">
                                 <label class="form-label">Barang <span style="color: var(--danger);">*</span></label>
-                                <select name="items[0][barang_id]" class="form-control" required>
-                                    <option value="">-- Pilih Barang --</option>
-                                    @foreach ($barang as $b)
-                                        <option value="{{ $b->id }}">[{{ strtoupper($b->kategori) }}]
-                                            {{ $b->nama_barang }} (Stok: {{ $b->stok }} {{ $b->satuan }})</option>
-                                    @endforeach
-                                </select>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control barang-input"
+                                        placeholder="Ketik nama barang..." oninput="searchBarang(this)" autocomplete="off">
+                                    <input type="hidden" name="items[0][barang_id]" class="barang-id">
+                                    <div class="suggestions"
+                                        style="position:absolute; background:#fff; width:100%; z-index:10; border:1px solid #ddd;">
+                                    </div>
+                                </div>
                             </div>
                             <div style="width: 100px;" class="form-group" style="margin-bottom: 0;">
                                 <label class="form-label">Jumlah <span style="color: var(--danger);">*</span></label>
@@ -128,6 +129,49 @@
         function removeItem(btn) {
             const items = document.querySelectorAll('.masuk-item');
             if (items.length > 1) btn.closest('.masuk-item').remove();
+        }
+        const barangList = [
+            @foreach ($barang as $b)
+                {
+                    id: {{ $b->id }},
+                    nama: "{{ $b->nama_barang }}",
+                    kategori: "{{ strtoupper($b->kategori) }}",
+                    stok: "{{ $b->stok }}",
+                    satuan: "{{ $b->satuan }}"
+                },
+            @endforeach
+        ];
+
+        function searchBarang(input) {
+            let keyword = input.value.toLowerCase();
+            let parent = input.closest('div');
+            let suggestions = parent.querySelector('.suggestions');
+
+            suggestions.innerHTML = '';
+
+            if (keyword.length === 0) return;
+
+            let filtered = barangList.filter(b =>
+                b.nama.toLowerCase().includes(keyword)
+            );
+
+            filtered.forEach(b => {
+                let item = document.createElement('div');
+                item.style.padding = '6px';
+                item.style.cursor = 'pointer';
+
+                // ✅ FORMAT SAMA PERSIS DENGAN BACKEND
+                let text = `[${b.kategori}] ${b.nama} (Stok: ${b.stok} ${b.satuan})`;
+                item.innerHTML = text;
+
+                item.onclick = function() {
+                    input.value = text; // tampil sama seperti backend
+                    parent.querySelector('.barang-id').value = b.id;
+                    suggestions.innerHTML = '';
+                };
+
+                suggestions.appendChild(item);
+            });
         }
     </script>
 @endpush
