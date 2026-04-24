@@ -103,26 +103,47 @@
                         <th>No</th>
                         <th>Barang</th>
                         <th>Kategori</th>
-                        <th>Jumlah</th>
+                        <th>Total Jumlah</th>
                         <th>Satuan</th>
-                        <th>Tgl Keluar</th>
-                        <th>Status / Kembali</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($p->transaksi as $i => $t)
+                    @php
+                        // Group by nama_barang + kategori + status_pinjam, lalu sum jumlah
+                        $grouped = $p->transaksi
+                            ->groupBy(
+                                fn($t) => $t->barang->nama_barang .
+                                    '|' .
+                                    $t->barang->kategori .
+                                    '|' .
+                                    ($t->status_pinjam ?? 'permanen'),
+                            )
+                            ->map(
+                                fn($group) => (object) [
+                                    'nama_barang' => $group->first()->barang->nama_barang,
+                                    'kategori' => $group->first()->barang->kategori,
+                                    'satuan' => $group->first()->barang->satuan,
+                                    'status_pinjam' => $group->first()->status_pinjam,
+                                    'status_label' => $group->first()->status_label ?? null,
+                                    'tgl_kembali_aktual' => $group->first()->tgl_kembali_aktual,
+                                    'total_jumlah' => $group->sum('jumlah'),
+                                ],
+                            );
+                    @endphp
+
+                    @foreach ($grouped as $i => $row)
                         <tr>
-                            <td>{{ $i + 1 }}</td>
-                            <td class="text-left">{{ $t->barang->nama_barang ?? '-' }}</td>
-                            <td>{{ strtoupper($t->barang->kategori ?? '-') }}</td>
-                            <td>{{ $t->jumlah }}</td>
-                            <td>{{ $t->barang->satuan ?? '-' }}</td>
-                            <td>{{ date('d-m-Y', strtotime($t->tanggal_keluar)) }}</td>
+                            <td>{{ $loop->index + 1 }}</td>
+                            <td class="text-left">{{ $row->nama_barang }}</td>
+                            <td>{{ strtoupper($row->kategori) }}</td>
+                            <td>{{ $row->total_jumlah }}</td>
+                            <td>{{ $row->satuan }}</td>
                             <td>
-                                @if ($t->status_pinjam)
-                                    {{ $t->status_label }}
-                                    @if ($t->tgl_kembali_aktual)
-                                        ({{ date('d-m-Y', strtotime($t->tgl_kembali_aktual)) }})
+                                @if ($row->status_pinjam)
+                                    {{ $row->status_label }}
+                                    @if ($row->tgl_kembali_aktual)
+                                        ({{ date('d-m-Y', strtotime($row->tgl_kembali_aktual)) }})
                                     @endif
                                 @else
                                     Keluar Permanen
