@@ -220,8 +220,13 @@ class LaporanController extends Controller
             $query->where('status', $request->status);
         }
 
-        // 📅 Filter tanggal — selalu aktif, pakai default jika tidak diisi
-        $query->whereBetween('tanggal_mulai', [$dari, $sampai]);
+        // 🔍 Filter per pekerjaan (untuk export tombol per baris)
+        if ($request->filled('pekerjaan_id')) {
+            $query->where('id', $request->pekerjaan_id);
+        } else {
+            // 📅 Filter tanggal — hanya aktif jika bukan export per pekerjaan
+            $query->whereBetween('tanggal_mulai', [$dari, $sampai]);
+        }
 
         $export = $request->get('export');
 
@@ -232,21 +237,29 @@ class LaporanController extends Controller
             $pekerjaan = $query->orderByDesc('tanggal_mulai')->paginate(10)->withQueryString();
         }
 
-        // 📄 Export PDF
+       // 📄 Export PDF
         if ($export === 'pdf') {
+            $namaFile = $request->filled('pekerjaan_id')
+                ? 'rekap-pekerjaan-' . $pekerjaan->first()?->kode_pekerjaan . '.pdf'
+                : 'rekap-pekerjaan.pdf';
+
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('laporan.rekap_pdf', [
                 'pekerjaan' => $pekerjaan,
-                'dari' => $dari,
-                'sampai' => $sampai,
-                'search' => $request->search,
-                'status' => $request->status,
+                'dari'      => $dari,
+                'sampai'    => $sampai,
+                'search'    => $request->search,
+                'status'    => $request->status,
             ])->setPaper('a4', 'landscape');
 
-            return $pdf->download('rekap-pekerjaan.pdf');
-        }
+            return $pdf->download($namaFile);
+            }
 
         // 📊 Export Excel
         if ($export === 'excel') {
+            $namaFile = $request->filled('pekerjaan_id')
+                ? 'rekap-pekerjaan-' . $pekerjaan->first()?->kode_pekerjaan . '.xlsx'
+                : 'rekap-pekerjaan.xlsx';
+
             return \Maatwebsite\Excel\Facades\Excel::download(
                 new \App\Exports\PekerjaanExport(
                     $pekerjaan,
@@ -255,7 +268,7 @@ class LaporanController extends Controller
                     $request->search,
                     $request->status
                 ),
-                'rekap-pekerjaan.xlsx'
+                $namaFile
             );
         }
         return view('laporan.rekap', compact('pekerjaan', 'dari', 'sampai'));

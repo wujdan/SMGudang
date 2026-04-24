@@ -72,9 +72,19 @@
                         <span><i class="fa-regular fa-calendar"></i> {{ $p->tanggal_mulai->format('d/m/Y') }}</span>
                     </div>
                 </div>
-                <a href="{{ route('pekerjaan.show', $p) }}" class="btn btn-sm btn-primary">
-                    <i class="fa-solid fa-eye"></i> Detail
-                </a>
+                <div style="display: flex; gap: 6px;">
+                    <a href="{{ route('pekerjaan.show', $p) }}" class="btn btn-sm btn-primary">
+                        <i class="fa-solid fa-eye"></i> Detail
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['export' => 'excel', 'pekerjaan_id' => $p->id]) }}"
+                        class="btn btn-sm btn-success" title="Export Excel">
+                        <i class="fa-solid fa-file-excel"></i>
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['export' => 'pdf', 'pekerjaan_id' => $p->id]) }}"
+                        class="btn btn-sm btn-danger" title="Export PDF">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </a>
+                </div>
             </div>
             @if ($p->transaksi->isNotEmpty())
                 <div class="table-wrap">
