@@ -419,7 +419,7 @@
 
                 div.onclick = function() {
                     input.value =
-                    `[${b.kategori.toUpperCase()}] ${b.nama_barang} (Stok: ${b.stok} ${b.satuan})`;
+                        `[${b.kategori.toUpperCase()}] ${b.nama_barang} (Stok: ${b.stok} ${b.satuan})`;
                     input.nextElementSibling.value = b.id;
 
                     // 🔥 TAMBAHAN PENTING
@@ -443,31 +443,34 @@
         let itemCount = 1;
 
         function addItem() {
-            let index = document.querySelectorAll('.cart-item').length;
+            let container = document.getElementById('cart-items');
+            let index = container.children.length;
 
+            let today = getTodayDate();
             let html = `
     <div class="cart-item" style="border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
         <div style="display: flex; gap: 10px; align-items: flex-start;">
-            
             <div style="flex: 1;">
                 <label class="form-label">Barang</label>
-
-                <input type="text" class="form-control barang-input" placeholder="Ketik nama barang..." oninput="searchBarang(this)">
+                <input type="text" class="form-control barang-input"
+                    placeholder="Ketik nama barang..." oninput="searchBarang(this)">
                 <input type="hidden" name="items[${index}][barang_id]" class="barang-id">
-                <div class="suggestions"></div>
+                <div class="suggestions" style="border:1px solid #ddd; max-height:150px; overflow:auto;"></div>
             </div>
-
             <div style="width: 100px;">
                 <label class="form-label">Jumlah</label>
                 <input type="number" name="items[${index}][jumlah]" class="form-control" min="1" value="1" required>
             </div>
-
+            <div style="width: 150px;">
+                <label class="form-label">Tanggal Keluar</label>
+                <input type="date" name="items[${index}][tgl_keluar]" class="form-control"
+                    value="${today}" required>
+            </div>
             <div style="padding-top: 26px;">
                 <button type="button" onclick="removeItem(this)" class="btn btn-sm btn-danger">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
-
         </div>
 
         <!-- 🔥 tools fields -->
@@ -522,6 +525,14 @@
             document.getElementById('delete-info').innerHTML =
                 `<i class="fa-solid fa-triangle-exclamation"></i> Hapus: <strong>${nama}</strong> — ${jumlah} ${satuan}`;
             document.getElementById('modal-delete').classList.add('show');
+        }
+
+        function getTodayDate() {
+            let today = new Date();
+            let yyyy = today.getFullYear();
+            let mm = String(today.getMonth() + 1).padStart(2, '0');
+            let dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
         }
     </script>
 @endpush
