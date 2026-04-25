@@ -17,30 +17,25 @@
         <div class="card-body" style="padding-bottom: 0;">
             <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: end;">
 
-                <!-- Search -->
                 <input type="text" name="search" class="form-control" placeholder="Cari nama pekerjaan..."
                     value="{{ request('search') }}" style="flex: 1; min-width: 200px;">
 
-                <!-- Status -->
                 <select name="status" class="form-control" style="width: 150px;">
                     <option value="">Semua Status</option>
                     <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
                 </select>
-                <!-- Dari Tanggal -->
                 <div style="display: flex; flex-direction: column;">
                     <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Dari Tanggal</label>
                     <input type="date" name="dari" class="form-control" value="{{ $dari }}"
                         style="width: 160px;">
                 </div>
 
-                <!-- Sampai Tanggal -->
                 <div style="display: flex; flex-direction: column;">
                     <label style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Sampai Tanggal</label>
                     <input type="date" name="sampai" class="form-control" value="{{ $sampai }}"
                         style="width: 160px;">
                 </div>
-                <!-- Tombol -->
                 <button type="submit" class="btn btn-primary">
                     <i class="fa-solid fa-search"></i> Filter
                 </button>
@@ -108,7 +103,13 @@
                                     </td>
                                     <td>{{ $t->jumlah }}</td>
                                     <td>{{ $t->barang->satuan }}</td>
-                                    <td>{{ $t->tanggal_keluar->format('d/m/Y') }}</td>
+                                    <td>
+                                        <div>{{ $t->tanggal_keluar->format('d/m/Y') }}</div>
+                                        <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">
+                                            <i class="fa-solid fa-clock-rotate-left" style="font-size: 9px;"></i>
+                                            {{ $t->updated_at->format('d/m/Y H:i') }}
+                                        </div>
+                                    </td>
                                     <td>
                                         @if ($t->status_pinjam)
                                             <span class="badge {{ $t->status_badge }}">{{ $t->status_label }}</span>

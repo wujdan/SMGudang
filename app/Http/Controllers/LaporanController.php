@@ -208,7 +208,10 @@ class LaporanController extends Controller
         $dari = $request->input('dari', now()->subDays(30)->format('Y-m-d'));
         $sampai = $request->input('sampai', now()->format('Y-m-d'));
 
-        $query = Pekerjaan::with(['transaksi.barang']);
+        $query = Pekerjaan::with(['transaksi' => function($q) {
+    // Mengurutkan item transaksi berdasarkan waktu update terbaru
+          $q->orderBy('updated_at', 'desc')->with('barang');
+        }]);
 
         // 🔍 Filter search
         if ($request->filled('search')) {
