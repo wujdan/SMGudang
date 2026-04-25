@@ -12,7 +12,7 @@
         <div class="card-body" style="padding-bottom: 0;">
             <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
                 <input type="text" name="search" class="form-control" placeholder="Cari nama pekerjaan / PIC..."
-                    value="{{ request('search') }}" style="flex: 1; min-width: 200px;">
+                    value="{{ request('search') }}" style="flex: 1; min-width: 200px;" autocomplete="off">
                 <select name="status" class="form-control" style="width: 150px;">
                     <option value="">Semua Status</option>
                     <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>

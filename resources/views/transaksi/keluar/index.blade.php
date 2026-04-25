@@ -4,13 +4,15 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3><i class="fa-solid fa-truck-ramp-box" style="color: var(--primary); margin-right: 8px;"></i>Barang Keluar </h3>
-            <p style="font-size: 13px; color: var(--muted); margin: 4px 0 0 0;">Pilih pekerjaan aktif untuk mencatat barang keluar</p>
+            <h3><i class="fa-solid fa-truck-ramp-box" style="color: var(--primary); margin-right: 8px;"></i>Barang Keluar
+            </h3>
+            <p style="font-size: 13px; color: var(--muted); margin: 4px 0 0 0;">Pilih pekerjaan aktif untuk mencatat barang
+                keluar</p>
         </div>
         <div class="card-body" style="padding-bottom: 0;">
             <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
                 <input type="text" name="search" class="form-control" placeholder="Cari nama pekerjaan / PIC..."
-                    value="{{ request('search') }}" style="flex: 1; min-width: 200px;">
+                    value="{{ request('search') }}" style="flex: 1; min-width: 200px;" autocomplete="off">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Cari</button>
                 @if (request()->anyFilled(['search']))
                     <a href="{{ route('barang-keluar.index') }}" class="btn btn-secondary">Reset</a>

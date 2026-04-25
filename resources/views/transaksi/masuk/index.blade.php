@@ -13,7 +13,7 @@
         <div class="card-body" style="padding-bottom: 0;">
             <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
                 <input type="text" name="search" class="form-control" placeholder="Cari nama barang / no transaksi..."
-                    value="{{ request('search') }}" style="flex: 1; min-width: 200px;">
+                    value="{{ request('search') }}" style="flex: 1; min-width: 200px;" autocomplete="off">
                 <select name="kategori" class="form-control" style="width: 150px;">
                     <option value="">Semua Kategori</option>
                     <option value="cons" {{ request('kategori') == 'cons' ? 'selected' : '' }}>Consumable</option>

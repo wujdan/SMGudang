@@ -212,7 +212,7 @@
         <div class="filter-bar">
             <form method="GET" class="filter-form">
                 <input type="text" name="search" class="form-control filter-search" placeholder="Cari nama / kode..."
-                    value="{{ request('search') }}">
+                    value="{{ request('search') }}" autocomplete="off">
 
                 <select name="kategori" class="form-control filter-select">
                     <option value="">Semua Kategori</option>
