@@ -98,28 +98,34 @@
                             @foreach ($p->transaksi as $t)
                                 <tr>
                                     <td style="font-weight: 600;">{{ $t->barang->nama_barang }}</td>
-                                    <td><span
-                                            class="badge badge-{{ $t->barang->kategori_badge }}">{{ strtoupper($t->barang->kategori) }}</span>
+                                    <td>
+                                        <span class="badge badge-{{ $t->barang->kategori_badge }}">
+                                            {{ strtoupper($t->barang->kategori) }}
+                                        </span>
                                     </td>
                                     <td>{{ $t->jumlah }}</td>
                                     <td>{{ $t->barang->satuan }}</td>
                                     <td>
-                                        <div>{{ $t->tanggal_keluar->format('d/m/Y') }}</div>
-                                        <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">
-                                            <i class="fa-solid fa-clock-rotate-left" style="font-size: 9px;"></i>
-                                            {{ $t->updated_at->format('d/m/Y H:i') }}
-                                        </div>
+                                        {{ $t->tanggal_keluar->format('d/m/Y') }}
                                     </td>
                                     <td>
                                         @if ($t->status_pinjam)
                                             <span class="badge {{ $t->status_badge }}">{{ $t->status_label }}</span>
                                             @if ($t->tgl_kembali_aktual)
-                                                <span
-                                                    style="font-size: 11px; color: var(--muted); margin-left: 4px;">{{ $t->tgl_kembali_aktual->format('d/m/Y') }}</span>
+                                                <span style="font-size: 11px; color: var(--muted); margin-left: 4px;">
+                                                    {{ $t->tgl_kembali_aktual->format('d/m/Y') }}
+                                                </span>
                                             @endif
                                         @else
                                             <span class="badge badge-secondary">Keluar Permanen</span>
                                         @endif
+
+                                        {{-- Update Terakhir diletakkan di sini agar serasi dengan status --}}
+                                        <div
+                                            style="font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap;">
+                                            <i class="fa-solid fa-clock-rotate-left" style="font-size: 9px;"></i>
+                                            {{ $t->updated_at->format('d/m/Y H:i') }}
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

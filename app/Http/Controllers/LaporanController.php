@@ -100,6 +100,10 @@ class LaporanController extends Controller
             $query->whereHas('barang', fn($q) => $q->where('kategori', $request->kategori));
         }
 
+        if ($request->filled('nama_barang')) {
+        $query->whereHas('barang', fn($q) => $q->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%'));
+    }
+
         if ($request->filled('status')) {
             if ($request->status === 'dipinjam') {
                 $query->where('status_pinjam', 'dipinjam');
@@ -110,8 +114,7 @@ class LaporanController extends Controller
             }
         }
 
-        $data = $query->orderByDesc('tanggal_keluar')->get();
-
+        $data = $query->orderByDesc('updated_at')->get();
         $dari = $request->filled('dari') ? $request->dari : now()->subDays(30)->format('Y-m-d');
         $sampai = $request->filled('sampai') ? $request->sampai : now()->format('Y-m-d');
 
@@ -209,7 +212,6 @@ class LaporanController extends Controller
         $sampai = $request->input('sampai', now()->format('Y-m-d'));
 
         $query = Pekerjaan::with(['transaksi' => function($q) {
-    // Mengurutkan item transaksi berdasarkan waktu update terbaru
           $q->orderBy('updated_at', 'desc')->with('barang');
         }]);
 

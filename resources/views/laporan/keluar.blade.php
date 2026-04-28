@@ -14,17 +14,25 @@
             </div>
         </div>
         <div class="card-body" style="padding-bottom: 0;">
-            <form method="GET"
+            <form method="GET" autocomplete="off"
                 style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end;">
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Dari Tanggal</label>
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Dari
+                        Tanggal</label>
                     <input type="date" name="dari" class="form-control"
                         value="{{ request('dari', now()->subDays(30)->format('Y-m-d')) }}" style="width: 160px;">
                 </div>
                 <div>
-                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Sampai Tanggal</label>
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Sampai
+                        Tanggal</label>
                     <input type="date" name="sampai" class="form-control"
                         value="{{ request('sampai', now()->format('Y-m-d')) }}" style="width: 160px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Nama
+                        Barang</label>
+                    <input type="text" name="nama_barang" class="form-control" value="{{ request('nama_barang') }}"
+                        placeholder="Cari nama barang..." style="width: 200px;">
                 </div>
                 <select name="kategori" class="form-control" style="width: 150px;">
                     <option value="">Semua Kategori</option>
@@ -65,7 +73,8 @@
                 <tbody>
                     @forelse($data as $d)
                         <tr>
-                            <td><code
+                            <td>
+                                <code
                                     style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ $d->no_transaksi }}</code>
                             </td>
                             <td>{{ $d->tanggal_keluar->format('d/m/Y') }}</td>
@@ -85,7 +94,14 @@
                             <td style="font-size: 12px; color: {{ $d->isTerlambat() ? 'var(--danger)' : 'inherit' }};">
                                 {{ $d->tgl_kembali_rencana?->format('d/m/Y') ?? '-' }}
                             </td>
-                            <td><span class="badge {{ $d->status_badge }}">{{ $d->status_label }}</span></td>
+                            <td>
+                                <span class="badge {{ $d->status_badge }}">{{ $d->status_label }}</span>
+                                {{-- Update Terakhir dipindah ke sini --}}
+                                <div style="font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap;">
+                                    <i class="fa-solid fa-clock-rotate-left" style="font-size: 9px;"></i>
+                                    {{ $d->updated_at->format('d/m/Y H:i') }}
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
