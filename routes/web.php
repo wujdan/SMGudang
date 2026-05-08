@@ -6,6 +6,7 @@ use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PekerjaanController;
+use App\Http\Controllers\PenggunaController; // ✅ Tambahkan import ini
 use Illuminate\Support\Facades\Route;
 
 // ═══════════════════════════════════
@@ -79,6 +80,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/statistik', [LaporanController::class, 'statistik'])->name('statistik');
             Route::get('/rekap', [LaporanController::class, 'rekap'])->name('rekap');
         });
+
+        // --- ✅ Manajemen Pengguna (User Management) ---
+        Route::resource('pengguna', PenggunaController::class);
 
     }); // end role:admin
 

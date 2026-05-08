@@ -1161,19 +1161,19 @@
                 <li>
                     <a href="{{ route('laporan.stok') }}"
                         class="{{ request()->routeIs('laporan.stok') ? 'active' : '' }}">
-                        <i class="fa-solid fa-clipboard-list"></i>Rekap Stok Terkini
+                        <i class="fa-solid fa-clipboard-list"></i> Rekap Stok Terkini
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('laporan.masuk') }}"
                         class="{{ request()->routeIs('laporan.masuk') ? 'active' : '' }}">
-                        <i class="fa-solid fa-file-import"></i>Rekap Barang Masuk
+                        <i class="fa-solid fa-file-import"></i> Rekap Barang Masuk
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('laporan.keluar') }}"
                         class="{{ request()->routeIs('laporan.keluar') ? 'active' : '' }}">
-                        <i class="fa-solid fa-file-export"></i>Rekap Barang Keluar
+                        <i class="fa-solid fa-file-export"></i> Rekap Barang Keluar
                     </a>
                 </li>
                 <li>
@@ -1186,6 +1186,13 @@
                     <a href="{{ route('laporan.statistik') }}"
                         class="{{ request()->routeIs('laporan.statistik') ? 'active' : '' }}">
                         <i class="fa-solid fa-chart-line"></i> Statistik
+                    </a>
+                </li>
+                <li>
+                    {{-- Perbaikan: Menu Pengguna dengan route yang tepat --}}
+                    <a href="{{ route('pengguna.index') }}"
+                        class="{{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-users"></i> Pengguna
                     </a>
                 </li>
             </ul>
