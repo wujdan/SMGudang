@@ -325,57 +325,49 @@
                                     <span class="badge badge-success">AMAN</span>
                                 @endif
                             </td>
-                          <td>
+                            <td>
 
-    @if($b->kategori === 'tools')
-
-        <span style="
+                                @if ($b->kategori === 'tools')
+                                    <span
+                                        style="
             color: var(--muted);
             font-size: 12px;
             font-style: italic;
         ">
-            Tidak digunakan
-        </span>
+                                        Tidak digunakan
+                                    </span>
+                                @else
+                                    <span class="harga-item">
 
-    @else
+                                        Rp {{ number_format($b->prices, 0, ',', '.') }}
 
-        <span class="harga-item">
+                                    </span>
+                                @endif
 
-            Rp {{ number_format($b->prices, 0, ',', '.') }}
-
-        </span>
-
-    @endif
-
-</td>
+                            </td>
                             {{-- Aksi --}}
                             <td>
-    <div class="action-group" style="justify-content: center;">
+                                <div class="action-group" style="justify-content: center;">
 
-        {{-- Detail --}}
-        <a href="{{ route('barang.show', $b) }}"
-            class="btn btn-xs btn-secondary"
-            title="Detail">
-            <i class="fa-solid fa-eye"></i>
-        </a>
+                                    {{-- Detail --}}
+                                    <a href="{{ route('barang.show', $b) }}" class="btn btn-xs btn-secondary"
+                                        title="Detail">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
 
-        {{-- Edit --}}
-        <a href="{{ route('barang.edit', $b) }}"
-            class="btn btn-xs btn-warning"
-            title="Edit">
-            <i class="fa-solid fa-pen"></i>
-        </a>
+                                    {{-- Edit --}}
+                                    <a href="{{ route('barang.edit', $b) }}" class="btn btn-xs btn-warning" title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
 
-        {{-- Hapus --}}
-      <button type="button"
-    class="btn btn-xs btn-danger"
-    title="Hapus"
-    onclick="confirmDelete({{ $b->id }}, '{{ addslashes($b->nama_barang) }}')">
-    <i class="fa-solid fa-trash"></i>
-</button>
+                                    {{-- Hapus --}}
+                                    <button type="button" class="btn btn-xs btn-danger" title="Hapus"
+                                        onclick="confirmDelete({{ $b->id }}, '{{ addslashes($b->nama_barang) }}')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
 
-    </div>
-</td>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -413,44 +405,48 @@
         </div>
 
     </div>
-{{-- MODAL HAPUS --}}
-<div id="deleteModal" style="display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:12px; padding:24px; width:100%; max-width:420px; margin:0 16px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
-        <div style="font-weight:700; font-size:15px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            Hapus Barang
-        </div>
-        <p style="margin-bottom:6px;">Yakin ingin menghapus barang <strong id="deleteNama"></strong>?</p>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">Tindakan ini tidak bisa dibatalkan.</p>
-        <div style="display:flex; justify-content:flex-end; gap:8px; padding-top:12px; border-top:1px solid var(--border);">
-            <button type="button" class="btn btn-secondary" onclick="closeDelete()">Batal</button>
-            <form id="deleteForm" method="POST">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger">
-                    <i class="fa-solid fa-trash"></i> Hapus
-                </button>
-            </form>
+    {{-- MODAL HAPUS --}}
+    <div id="deleteModal"
+        style="display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+        <div
+            style="background:white; border-radius:12px; padding:24px; width:100%; max-width:420px; margin:0 16px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+            <div
+                style="font-weight:700; font-size:15px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+                Hapus Barang
+            </div>
+            <p style="margin-bottom:6px;">Yakin ingin menghapus barang <strong id="deleteNama"></strong>?</p>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">Tindakan ini tidak bisa dibatalkan.</p>
+            <div
+                style="display:flex; justify-content:flex-end; gap:8px; padding-top:12px; border-top:1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeDelete()">Batal</button>
+                <form id="deleteForm" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash"></i> Hapus
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-@push('scripts')
-<script>
-function confirmDelete(id, nama) {
-    document.getElementById('deleteNama').textContent = nama;
-    document.getElementById('deleteForm').action = '/barang/' + id;
-    const modal = document.getElementById('deleteModal');
-    modal.style.display = 'flex';
-}
+    @push('scripts')
+        <script>
+            function confirmDelete(id, nama) {
+                document.getElementById('deleteNama').textContent = nama;
+                document.getElementById('deleteForm').action = '/barang/' + id;
+                const modal = document.getElementById('deleteModal');
+                modal.style.display = 'flex';
+            }
 
-function closeDelete() {
-    document.getElementById('deleteModal').style.display = 'none';
-}
+            function closeDelete() {
+                document.getElementById('deleteModal').style.display = 'none';
+            }
 
-// Tutup kalau klik backdrop
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) closeDelete();
-});
-</script>
-@endpush
+            // Tutup kalau klik backdrop
+            document.getElementById('deleteModal').addEventListener('click', function(e) {
+                if (e.target === this) closeDelete();
+            });
+        </script>
+    @endpush
 @endsection

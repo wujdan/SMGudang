@@ -3,13 +3,117 @@
 
 @push('styles')
     <style>
-        /* ── CHART AKTIVITAS ── */
+        /* ─────────────────────────────
+       GRID
+    ───────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        /* ─────────────────────────────
+       CARD
+    ───────────────────────────── */
+        .card {
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-size: 15px;
+        }
+
+        /* ─────────────────────────────
+       STAT CARD
+    ───────────────────────────── */
+        .stat-card {
+            border-radius: 18px;
+            padding: 16px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: .2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .stat-bottom {
+            margin-top: 14px;
+        }
+
+        .stat-bottom .stat-val {
+            font-size: 30px !important;
+            font-weight: 800 !important;
+            line-height: 1 !important;
+        }
+
+        .stat-lbl {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .stat-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* ─────────────────────────────
+       CHART
+    ───────────────────────────── */
         .chart-container {
             position: relative;
             width: 100%;
-            aspect-ratio: 16 / 5;
+            aspect-ratio: 16/5;
             min-height: 160px;
-            max-height: 260px;
+            max-height: 220px;
         }
 
         .chart-container canvas {
@@ -23,16 +127,16 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
         .summary-chip {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 10px;
             font-weight: 700;
         }
 
@@ -43,12 +147,12 @@
 
         .summary-chip.red {
             background: #fee2e2;
-            color: var(--danger);
+            color: #dc2626;
         }
 
         .summary-chip .dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
         }
 
@@ -60,50 +164,20 @@
             background: #ef4444;
         }
 
-        .chart-footer {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 6px;
-            padding: 10px 18px 14px;
-            border-top: 1px solid var(--border);
-        }
-
-        .range-pill {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            color: var(--muted);
-            font-family: inherit;
-            transition: background .15s, color .15s;
-        }
-
-        .range-pill:hover {
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .range-pill.active {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        /* ── CHART KATEGORI ── */
+        /* ─────────────────────────────
+       DONUT
+    ───────────────────────────── */
         .kategori-section {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
         }
 
         .chart-donut-wrap {
             position: relative;
+            width: 125px;
+            height: 125px;
             flex-shrink: 0;
-            width: 150px;
-            height: 150px;
         }
 
         .chart-donut-wrap canvas {
@@ -120,9 +194,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 10px;
             padding: 7px 0;
             border-bottom: 1px solid #f1f5f9;
-            gap: 8px;
         }
 
         .legend-row:last-child {
@@ -133,46 +207,67 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 0;
         }
 
         .legend-dot {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             flex-shrink: 0;
         }
 
         .legend-label {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .4px;
         }
 
         .legend-right {
             text-align: right;
+            flex-shrink: 0;
         }
 
         .legend-num {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 800;
             line-height: 1;
-            color: var(--text);
         }
 
         .legend-sub {
-            font-size: 10.5px;
+            font-size: 10px;
             color: var(--muted);
         }
 
-        /* ── RESPONSIVE ── */
-        @media (max-width: 768px) {
-            .card-header {
-                flex-wrap: wrap;
+        /* ─────────────────────────────
+       TABLE
+    ───────────────────────────── */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            min-width: 650px;
+        }
+
+        /* ─────────────────────────────
+       TABLET
+    ───────────────────────────── */
+        @media (max-width:768px) {
+
+            .grid-2 {
+                grid-template-columns: 1fr;
             }
 
-            .chart-summary {
-                width: 100%;
+            .stat-card {
+                min-height: 110px;
+                padding: 15px;
+            }
+
+            .stat-bottom .stat-val {
+                font-size: 26px !important;
             }
 
             .chart-container {
@@ -183,19 +278,69 @@
             .kategori-section {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 14px;
             }
 
             .chart-donut-wrap {
-                width: 120px;
-                height: 120px;
+                width: 110px;
+                height: 110px;
             }
         }
 
-        @media (max-width: 400px) {
+        /* ─────────────────────────────
+       MOBILE
+    ───────────────────────────── */
+        @media (max-width:480px) {
+
+            .stats-grid {
+                gap: 10px;
+            }
+
+            .grid-2 {
+                gap: 12px;
+            }
+
+            .stat-card {
+                border-radius: 16px;
+                padding: 14px;
+                min-height: 100px;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .stat-bottom .stat-val {
+                font-size: 22px !important;
+            }
+
+            .stat-lbl {
+                font-size: 11px;
+            }
+
             .chart-container {
                 aspect-ratio: 4/3;
-                max-height: 180px;
+                min-height: 170px;
+                max-height: 190px;
+            }
+
+            .chart-summary {
+                width: 100%;
+            }
+
+            .summary-chip {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .chart-donut-wrap {
+                width: 100px;
+                height: 100px;
+            }
+
+            .card-header h3 {
+                font-size: 14px;
             }
         }
     </style>
@@ -284,11 +429,6 @@
                     <canvas id="chartAktivitas"></canvas>
                 </div>
             </div>
-            {{-- <div class="chart-footer">
-                <button class="range-pill active" onclick="setRange(this, 7)">7H</button>
-                <button class="range-pill" onclick="setRange(this, 14)">14H</button>
-                <button class="range-pill" onclick="setRange(this, 30)">30H</button>
-            </div> --}}
         </div>
 
         {{-- Stok per Kategori --}}
@@ -346,7 +486,7 @@
                 </div>
             @else
                 <div class="table-wrap">
-                    <table>
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Barang</th>
@@ -399,7 +539,7 @@
                 </div>
             @else
                 <div class="table-wrap">
-                    <table>
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Tools</th>
@@ -453,7 +593,7 @@
             </div>
         @else
             <div class="table-wrap">
-                <table>
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Kode</th>
@@ -533,7 +673,7 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // ← PENTING: ikuti ukuran .chart-container
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: false
@@ -599,7 +739,7 @@
             }
         });
 
-        // ── Range filter — fetch data baru via AJAX ──
+        // ── Range filter ──
         function setRange(btn, days) {
             document.querySelectorAll('.range-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -643,7 +783,7 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // ← PENTING: ikuti ukuran .chart-donut-wrap
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: false
