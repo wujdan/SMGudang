@@ -17,6 +17,7 @@
         h2 {
             text-align: center;
             margin-bottom: 10px;
+            text-transform: uppercase;
         }
 
         table {
@@ -32,16 +33,33 @@
 
         th {
             background-color: #f2f2f2;
+            padding: 6px;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 10px;
         }
 
-        th,
         td {
             padding: 6px;
             text-align: center;
+            vertical-align: middle;
         }
 
         td.text-left {
             text-align: left;
+        }
+
+        td.text-right {
+            text-align: right;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 15px;
+            width: 100%;
         }
     </style>
 </head>
@@ -74,52 +92,56 @@
             }
             return $value ? strtoupper($value) : '-';
         };
+
+        // Hitung total nilai aset stok
+        $totalNilaiAset = $barang->sum(fn($item) => $item->stok * ($item->hpp_satuan ?? 0));
     @endphp
 
-    <div
-        style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 10px;">
-
-        <div>
-            Tanggal: {{ date('d-m-Y') }}
+    <div style="font-size: 12px; margin-bottom: 10px;">
+        <div style="float: left;">
+            <strong>Tanggal Cetak:</strong> {{ date('d-m-Y') }}
         </div>
-
-        <div>
-            <strong>Kategori:</strong>
-            {{ $kategoriLabel }}
-      
-            <strong>Status:</strong>
-            {{ request('status') ? strtoupper(request('status')) : 'SEMUA' }}
+        <div style="float: right; text-align: right;">
+            <strong>Kategori:</strong> {{ $kategoriLabel }} |
+            <strong>Status:</strong> {{ request('status') ? strtoupper(request('status')) : 'SEMUA' }}
         </div>
-
+        <div style="clear: both;"></div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Kode</th>
+                <th style="width: 30px;">No</th>
+                <th style="width: 80px;">Kode</th>
                 <th>Nama Barang</th>
-                <th>Kategori</th>
-                <th>Satuan</th>
-                <th>Stok</th>
-                <th>Status</th>
-                <th>Dipinjam</th>
+                <th style="width: 80px;">Kategori</th>
+                <th style="width: 50px;">Satuan</th>
+                <th style="width: 40px;">Stok</th>
+                <th style="width: 80px;">HPP Satuan</th>
+                <th style="width: 100px;">Total Nilai</th>
+                <th style="width: 60px;">Status</th>
+                <th style="width: 50px;">Pinjam</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($barang as $index => $item)
+                @php
+                    $totalNilaiItem = $item->stok * ($item->hpp_satuan ?? 0);
+                @endphp
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $item->kode_barang }}</td>   
+                    <td>{{ $item->kode_barang }}</td>
                     <td class="text-left">{{ $item->nama_barang }}</td>
                     <td>{{ $formatKategori($item->kategori) }}</td>
                     <td>{{ $item->satuan }}</td>
-                    <td>{{ $item->stok }}</td>
+                    <td class="bold">{{ number_format($item->stok) }}</td>
+                    <td class="text-right">Rp {{ number_format($item->hpp_satuan ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right bold">Rp {{ number_format($totalNilaiItem, 0, ',', '.') }}</td>
                     <td>
                         @if ($item->stok == 0)
-                            Habis
+                            <span style="color: red;">Habis</span>
                         @elseif ($item->stok <= $item->min_stok)
-                            Menipis
+                            <span style="color: orange;">Menipis</span>
                         @else
                             Aman
                         @endif
@@ -128,10 +150,32 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9">Data tidak tersedia</td>
+                    <td colspan="10">Data tidak tersedia</td>
                 </tr>
             @endforelse
         </tbody>
+        @if ($barang->count() > 0)
+            <tfoot>
+                <tr class="bold" style="background: #f9f9f9;">
+                    <td colspan="7" class="text-right">TOTAL NILAI ASET STOK</td>
+                    <td class="text-right">Rp {{ number_format($totalNilaiAset, 0, ',', '.') }}</td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        @endif
+    </table>
+
+    <table class="footer" style="border: none;">
+        <tr>
+            <td style="border: none; text-align: left; color: #666; font-size: 9px;">
+                GudangKu — Sistem Manajemen Gudang<br>
+                Dicetak oleh sistem secara otomatis.
+            </td>
+            <td style="border: none; width: 200px;">
+                <div style="margin-bottom: 50px;">Penanggung Jawab,</div>
+                <div style="border-top: 1px solid black; width: 150px; margin: 0 auto;"></div>
+            </td>
+        </tr>
     </table>
 
 </body>

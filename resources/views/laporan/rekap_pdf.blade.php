@@ -43,6 +43,14 @@
         td.text-left {
             text-align: left;
         }
+
+        td.text-right {
+            text-align: right;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -50,7 +58,6 @@
 
     <h2>REKAP BARANG PER PEKERJAAN</h2>
 
-    <!-- INFO FILTER -->
     @php
         $dari = request('dari') ?? \Carbon\Carbon::now()->subDays(30)->format('Y-m-d');
         $sampai = request('sampai') ?? \Carbon\Carbon::now()->format('Y-m-d');
@@ -83,9 +90,7 @@
         @endif
     </div>
 
-    <!-- TABEL -->
     @forelse ($pekerjaan as $p)
-        <!-- Header Pekerjaan -->
         <div style="margin-top: 14px; margin-bottom: 4px; font-size: 11px;">
             <strong>{{ $p->kode_pekerjaan }} — {{ $p->nama_pekerjaan }}</strong>
             &nbsp;|&nbsp; Status: <strong>{{ strtoupper($p->status) }}</strong>
@@ -100,17 +105,18 @@
             <table>
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th style="width: 30px;">No</th>
                         <th>Barang</th>
                         <th>Kategori</th>
                         <th>Total Jumlah</th>
                         <th>Satuan</th>
+                        <th>HPP / Unit</th>
+                        <th>Total HPP</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php
-                        // Group by nama_barang + kategori + status_pinjam, lalu sum jumlah
                         $grouped = $p->transaksi
                             ->groupBy(
                                 fn($t) => $t->barang->nama_barang .
@@ -124,26 +130,30 @@
                                     'nama_barang' => $group->first()->barang->nama_barang,
                                     'kategori' => $group->first()->barang->kategori,
                                     'satuan' => $group->first()->barang->satuan,
+                                    'hpp_satuan' => $group->first()->hpp_satuan, // Mengambil HPP per unit
                                     'status_pinjam' => $group->first()->status_pinjam,
                                     'status_label' => $group->first()->status_label ?? null,
                                     'tgl_kembali_aktual' => $group->first()->tgl_kembali_aktual,
                                     'total_jumlah' => $group->sum('jumlah'),
+                                    'total_hpp' => $group->sum('total_hpp'), // Total HPP dari grup
                                 ],
                             );
                     @endphp
 
-                    @foreach ($grouped as $i => $row)
+                    @foreach ($grouped as $row)
                         <tr>
-                            <td>{{ $loop->index + 1 }}</td>
+                            <td>{{ $loop->iteration }}</td>
                             <td class="text-left">{{ $row->nama_barang }}</td>
                             <td>{{ strtoupper($row->kategori) }}</td>
-                            <td>{{ $row->total_jumlah }}</td>
+                            <td class="bold">{{ number_format($row->total_jumlah) }}</td>
                             <td>{{ $row->satuan }}</td>
+                            <td class="text-right">Rp {{ number_format($row->hpp_satuan, 0, ',', '.') }}</td>
+                            <td class="text-right bold">Rp {{ number_format($row->total_hpp, 0, ',', '.') }}</td>
                             <td>
                                 @if ($row->status_pinjam)
                                     {{ $row->status_label }}
                                     @if ($row->tgl_kembali_aktual)
-                                        ({{ date('d-m-Y', strtotime($row->tgl_kembali_aktual)) }})
+                                        <br>({{ date('d-m-Y', strtotime($row->tgl_kembali_aktual)) }})
                                     @endif
                                 @else
                                     Keluar Permanen
@@ -152,12 +162,22 @@
                         </tr>
                     @endforeach
                 </tbody>
+                <tfoot>
+                    <tr class="bold" style="background: #f9f9f9;">
+                        <td colspan="3" class="text-right">TOTAL PER PEKERJAAN</td>
+                        <td>{{ number_format($grouped->sum('total_jumlah')) }}</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-right">Rp {{ number_format($grouped->sum('total_hpp'), 0, ',', '.') }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
         @else
             <table>
                 <tbody>
                     <tr>
-                        <td>Belum ada barang dicatat</td>
+                        <td colspan="8">Belum ada barang dicatat</td>
                     </tr>
                 </tbody>
             </table>
@@ -167,7 +187,7 @@
         <table>
             <tbody>
                 <tr>
-                    <td>Tidak ada data pekerjaan</td>
+                    <td colspan="8">Tidak ada data pekerjaan</td>
                 </tr>
             </tbody>
         </table>
