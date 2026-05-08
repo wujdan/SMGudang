@@ -9,7 +9,7 @@ use App\Models\TransaksiPekerjaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Gate;
 class PekerjaanController extends Controller
 {
     public function index(Request $request)
@@ -35,7 +35,7 @@ class PekerjaanController extends Controller
 
     public function create()
     {
-        $this->authorize('admin-only');
+        Gate::authorize('admin-only');
         return view('pekerjaan.create');
     }
 

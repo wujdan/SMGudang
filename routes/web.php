@@ -23,16 +23,20 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // ═══════════════════════════════════
 Route::middleware('auth')->group(function () {
 
-    // ---------------------------------
-    // UMUM (User & Admin)
-    // ---------------------------------
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Pekerjaan — hanya lihat daftar (index) dan detail (show)
+    // ---------------------------------
+    // PEKERJAAN - UMUM (User & Admin)
+    // ---------------------------------
     Route::get('pekerjaan', [PekerjaanController::class, 'index'])->name('pekerjaan.index');
+
+    // Form tambah pekerjaan KHUSUS ADMIN, letakkan sebelum show
+    Route::get('pekerjaan/create', [PekerjaanController::class, 'create'])
+        ->name('pekerjaan.create')
+        ->middleware('role:admin');
+
     Route::get('pekerjaan/{pekerjaan}', [PekerjaanController::class, 'show'])->name('pekerjaan.show');
-    // Jika user TIDAK boleh lihat detail, hapus route 'show' di atas.
 
     // ---------------------------------
     // KHUSUS ADMIN
@@ -43,7 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/barang/search', [BarangController::class, 'search'])->name('barang.search');
         Route::resource('barang', BarangController::class);
 
-        // --- Barang Masuk (tanpa show, edit, update) ---
+        // --- Barang Masuk ---
         Route::resource('barang-masuk', BarangMasukController::class)->except(['show', 'edit', 'update']);
 
         // --- Barang Keluar ---
@@ -54,8 +58,7 @@ Route::middleware('auth')->group(function () {
         Route::post('barang-keluar/{pekerjaan}', [\App\Http\Controllers\BarangKeluarController::class, 'store'])
             ->name('barang-keluar.store');
 
-        // --- Pekerjaan: CRUD selain index & show ---
-        Route::get('pekerjaan/create', [PekerjaanController::class, 'create'])->name('pekerjaan.create');
+        // --- Pekerjaan: CRUD lainnya (store, edit, update, delete) ---
         Route::post('pekerjaan', [PekerjaanController::class, 'store'])->name('pekerjaan.store');
         Route::get('pekerjaan/{pekerjaan}/edit', [PekerjaanController::class, 'edit'])->name('pekerjaan.edit');
         Route::put('pekerjaan/{pekerjaan}', [PekerjaanController::class, 'update'])->name('pekerjaan.update');

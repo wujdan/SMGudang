@@ -4,10 +4,17 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3><i class="fa-solid fa-hard-hat" style="color: var(--primary); margin-right: 8px;"></i>Daftar Pekerjaan</h3>
-            <a href="{{ route('pekerjaan.create') }}" class="btn btn-dark">
-                <i class="fa-solid fa-plus"></i> Buat Pekerjaan Baru
-            </a>
+            <h3>
+                <i class="fa-solid fa-hard-hat" style="color: var(--primary); margin-right: 8px;"></i>
+                Daftar Pekerjaan
+            </h3>
+
+            {{-- Tombol hanya untuk admin --}}
+            @if (auth()->user()->role === 'admin')
+                <a href="{{ route('pekerjaan.create') }}" class="btn btn-dark">
+                    <i class="fa-solid fa-plus"></i> Buat Pekerjaan Baru
+                </a>
+            @endif
         </div>
         <div class="card-body" style="padding-bottom: 0;">
             <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
@@ -67,23 +74,28 @@
                             </td>
                             <td>
                                 <div style="display: flex; gap: 4px;">
+                                    {{-- Detail: muncul untuk semua role --}}
                                     <a href="{{ route('pekerjaan.show', $p) }}" class="btn btn-xs btn-secondary"
-                                        title="Detail & Tambah Barang">
+                                        title="Detail">
                                         <i class="fa-solid fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('pekerjaan.edit', $p) }}" class="btn btn-sm btn-warning"
-                                        title="Edit">
-                                        <i class="fa-solid fa-pen"></i>
-                                    </a>
-                                    <form action="{{ route('pekerjaan.destroy', $p) }}" method="POST"
-                                        style="display: inline;"
-                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus pekerjaan ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
+
+                                    {{-- Edit & Hapus: hanya admin --}}
+                                    @if (auth()->user()->role === 'admin')
+                                        <a href="{{ route('pekerjaan.edit', $p) }}" class="btn btn-sm btn-warning"
+                                            title="Edit">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                        <form action="{{ route('pekerjaan.destroy', $p) }}" method="POST"
+                                            style="display: inline;"
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus pekerjaan ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
