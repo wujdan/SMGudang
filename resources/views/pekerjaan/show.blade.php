@@ -1,6 +1,119 @@
 @extends('layouts.app')
 @section('title', 'Detail Pekerjaan: ' . $pekerjaan->kode_pekerjaan)
 
+@push('styles')
+    <style>
+        .hpp-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 13px;
+            color: var(--muted);
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .hpp-row:last-child {
+            border-bottom: none;
+        }
+
+        .hpp-row .label {
+            font-weight: 500;
+        }
+
+        .hpp-row .value {
+            font-weight: 700;
+            color: var(--text);
+            font-family: monospace;
+            font-size: 13.5px;
+        }
+
+        .subtotal-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 16px;
+            background: #f8fafc;
+            border-top: 1.5px solid var(--border);
+            font-size: 13px;
+        }
+
+        .subtotal-bar .label {
+            color: var(--muted);
+        }
+
+        .subtotal-bar .value {
+            font-weight: 800;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .grand-total-card {
+            background: var(--dark, #1e293b);
+            color: #fff;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .grand-total-card .gt-label {
+            font-size: 13px;
+            opacity: .65;
+            margin-bottom: 4px;
+        }
+
+        .grand-total-card .gt-value {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            line-height: 1;
+        }
+
+        .grand-total-card .gt-breakdown {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .grand-total-card .gt-item {
+            text-align: center;
+        }
+
+        .grand-total-card .gt-item-label {
+            font-size: 11px;
+            opacity: .55;
+            margin-bottom: 2px;
+        }
+
+        .grand-total-card .gt-item-val {
+            font-size: 14px;
+            font-weight: 700;
+            opacity: .9;
+        }
+
+        /* harga kolom di tabel */
+        .harga-cell {
+            line-height: 1.3;
+        }
+
+        .harga-cell .satuan {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .harga-cell .total {
+            font-size: 11px;
+            color: var(--muted);
+        }
+    </style>
+@endpush
+
 @section('content')
     <!-- HEADER -->
     <div
@@ -29,17 +142,18 @@
                     <i class="fa-solid fa-cart-plus"></i> Tambah Barang
                 </button>
             @endif
-            {{-- <a href="{{ route('pekerjaan.edit', $pekerjaan) }}" class="btn btn-warning">tes
-                <i class="fa-solid fa-pen"></i>
-            </a> --}}
         </div>
     </div>
 
-    <!-- TABS BARANG -->
     @php
         $tools = $pekerjaan->transaksi->filter(fn($t) => $t->barang->kategori === 'tools');
         $cons = $pekerjaan->transaksi->filter(fn($t) => $t->barang->kategori === 'cons');
         $material = $pekerjaan->transaksi->filter(fn($t) => $t->barang->kategori === 'material');
+
+        $hppTools = $tools->sum('total_hpp');
+        $hppCons = $cons->sum('total_hpp');
+        $hppMaterial = $material->sum('total_hpp');
+        $grandTotal = $hppTools + $hppCons + $hppMaterial;
     @endphp
 
     <!-- TOOLS TABLE -->
@@ -60,6 +174,7 @@
                             <th>Tgl Keluar</th>
                             <th>Rencana Kembali</th>
                             <th>Tgl Kembali</th>
+                            <th>Total Harga</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -83,6 +198,18 @@
                                     @endif
                                 </td>
                                 <td>{{ $t->tgl_kembali_aktual ? $t->tgl_kembali_aktual->format('d/m/Y') : '-' }}</td>
+                                <td>
+
+                                    <span
+                                        style="
+        font-size: 12px;
+        color: var(--muted);
+        font-style: italic;
+    ">
+                                        Tidak digunakan
+                                    </span>
+
+                                </td>
                                 <td><span class="badge {{ $t->status_badge }}">{{ $t->status_label }}</span></td>
                                 <td>
                                     @if ($t->status_pinjam === 'dipinjam')
@@ -92,24 +219,33 @@
                                             <i class="fa-solid fa-rotate-left"></i> Kembalikan
                                         </button>
                                     @else
-                                        <div style="display: flex; gap: 6px; align-items: center;">
-                                            <span style="color: var(--success); font-size: 12px;">
-                                                <i class="fa-solid fa-check"></i> Sudah Kembali
-                                            </span>
-                                            @if ($pekerjaan->status == 'aktif')
-                                                <button
-                                                    onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
-                                                    class="btn btn-sm btn-danger">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            @endif
-                                        </div>
+                                        <span style="color: var(--success); font-size: 12px;">
+                                            <i class="fa-solid fa-check"></i> Sudah Kembali
+                                        </span>
                                     @endif
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            {{-- Subtotal Tools --}}
+            <div class="subtotal-bar">
+                <div class="subtotal-bar">
+                    <span class="label">
+                        <i class="fa-solid fa-screwdriver-wrench" style="margin-right:4px;"></i>
+
+                        Subtotal Tools
+                    </span>
+
+                    <span class="value" style="
+            color: var(--muted);
+            font-style: italic;
+        ">
+
+                        Tidak digunakan
+                    </span>
+                </div>
             </div>
         </div>
     @endif
@@ -128,6 +264,7 @@
                             <th>Jumlah</th>
                             <th>Satuan</th>
                             <th>Tanggal Keluar</th>
+                            <th>Total Harga</th>
                             <th>Keterangan</th>
                             <th>Aksi</th>
                         </tr>
@@ -139,19 +276,21 @@
                                 <td>{{ $t->jumlah }}</td>
                                 <td>{{ $t->barang->satuan }}</td>
                                 <td>{{ $t->tanggal_keluar->format('d/m/Y') }}</td>
+                                <td>
+                                    <div class="harga-cell">
+                                        <div class="satuan">Rp {{ number_format($t->hpp_satuan, 0, ',', '.') }}</div>
+                                        <div class="total">Total: Rp {{ number_format($t->total_hpp, 0, ',', '.') }}</div>
+                                    </div>
+                                </td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
                                 <td style="display: flex; gap: 6px;">
                                     @if ($pekerjaan->status == 'aktif')
                                         <button
                                             onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
-                                            class="btn btn-sm btn-warning">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
+                                            class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></button>
                                         <button
                                             onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
-                                            class="btn btn-sm btn-danger">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
+                                            class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
                                     @else
                                         <span style="color: var(--muted); font-size: 12px;">-</span>
                                     @endif
@@ -160,6 +299,11 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            {{-- Subtotal Consumables --}}
+            <div class="subtotal-bar">
+                <span class="label"><i class="fa-solid fa-fire" style="margin-right:4px;"></i> Subtotal Consumables</span>
+                <span class="value">Rp {{ number_format($hppCons, 0, ',', '.') }}</span>
             </div>
         </div>
     @endif
@@ -178,6 +322,7 @@
                             <th>Jumlah</th>
                             <th>Satuan</th>
                             <th>Tanggal Keluar</th>
+                            <th>Total Harga</th>
                             <th>Keterangan</th>
                             <th>Aksi</th>
                         </tr>
@@ -189,19 +334,21 @@
                                 <td>{{ $t->jumlah }}</td>
                                 <td>{{ $t->barang->satuan }}</td>
                                 <td>{{ $t->tanggal_keluar->format('d/m/Y') }}</td>
+                                <td>
+                                    <div class="harga-cell">
+                                        <div class="satuan">Rp {{ number_format($t->hpp_satuan, 0, ',', '.') }}</div>
+                                        <div class="total">Total: Rp {{ number_format($t->total_hpp, 0, ',', '.') }}</div>
+                                    </div>
+                                </td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
                                 <td style="display: flex; gap: 6px;">
                                     @if ($pekerjaan->status == 'aktif')
                                         <button
                                             onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
-                                            class="btn btn-sm btn-warning">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
+                                            class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></button>
                                         <button
                                             onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
-                                            class="btn btn-sm btn-danger">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
+                                            class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
                                     @else
                                         <span style="color: var(--muted); font-size: 12px;">-</span>
                                     @endif
@@ -210,6 +357,11 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            {{-- Subtotal Material --}}
+            <div class="subtotal-bar">
+                <span class="label"><i class="fa-solid fa-cube" style="margin-right:4px;"></i> Subtotal Material</span>
+                <span class="value">Rp {{ number_format($hppMaterial, 0, ',', '.') }}</span>
             </div>
         </div>
     @endif
@@ -223,12 +375,48 @@
         </div>
     @endif
 
-    <!-- MODAL TAMBAH BARANG (CART) -->
+    {{-- ═══════════════════════════════════════════════════
+         GRAND TOTAL HPP
+    ════════════════════════════════════════════════════ --}}
+    @if ($pekerjaan->transaksi->isNotEmpty())
+        <div class="grand-total-card">
+            <div>
+                <div class="gt-label"><i class="fa-solid fa-receipt" style="margin-right:6px;"></i>Total HPP Pekerjaan</div>
+                <div class="gt-value">Rp {{ number_format($grandTotal, 0, ',', '.') }}</div>
+            </div>
+            <div class="gt-breakdown">
+                @if ($tools->isNotEmpty())
+                    <div class="gt-item">
+                        <div class="gt-item-label"><i class="fa-solid fa-screwdriver-wrench"></i> Tools</div>
+                        <div class="gt-item-val">Rp {{ number_format($hppTools, 0, ',', '.') }}</div>
+                    </div>
+                @endif
+                @if ($cons->isNotEmpty())
+                    <div class="gt-item">
+                        <div class="gt-item-label"><i class="fa-solid fa-fire"></i> Consumables</div>
+                        <div class="gt-item-val">Rp {{ number_format($hppCons, 0, ',', '.') }}</div>
+                    </div>
+                @endif
+                @if ($material->isNotEmpty())
+                    <div class="gt-item">
+                        <div class="gt-item-label"><i class="fa-solid fa-cube"></i> Material</div>
+                        <div class="gt-item-val">Rp {{ number_format($hppMaterial, 0, ',', '.') }}</div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <!-- ═══════════════════════════════════════════════════
+                                     MODALS (tidak berubah)
+                                ════════════════════════════════════════════════════ -->
+
+    <!-- MODAL TAMBAH BARANG -->
     <div class="modal-backdrop" id="modal-tambah">
         <div class="modal" style="max-width: 700px;">
             <div class="modal-header">
-                <h4><i class="fa-solid fa-cart-plus" style="color: var(--primary); margin-right: 8px;"></i>Tambah Barang ke
-                    Pekerjaan</h4>
+                <h4><i class="fa-solid fa-cart-plus" style="color: var(--primary); margin-right: 8px;"></i>Tambah Barang
+                    ke Pekerjaan</h4>
                 <button class="btn-close" onclick="document.getElementById('modal-tambah').classList.remove('show')">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -237,25 +425,27 @@
                 @csrf
                 <div class="modal-body">
                     <div id="cart-items">
-                        <!-- Item pertama -->
                         <div class="cart-item"
                             style="border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
                             <div style="display: flex; gap: 10px; align-items: flex-start;">
                                 <div style="flex: 1;">
-                                    <label class="form-label">Barang</label>
+                                    <label class="form-label">Barang <span style="color: var(--danger);">*</span></label>
                                     <input type="text" class="form-control barang-input"
-                                        placeholder="Ketik nama barang..." oninput="searchBarang(this)">
+                                        placeholder="Ketik nama barang..." oninput="searchBarang(this)"
+                                        autocomplete="off">
                                     <input type="hidden" name="items[0][barang_id]" class="barang-id">
                                     <div class="suggestions"
-                                        style="border:1px solid #ddd; max-height:150px; overflow:auto;"></div>
+                                        style="border:1px solid #ddd; max-height:150px; overflow:auto; background:#fff; position:relative;">
+                                    </div>
                                 </div>
                                 <div style="width: 100px;">
-                                    <label class="form-label">Jumlah</label>
+                                    <label class="form-label">Jumlah <span style="color: var(--danger);">*</span></label>
                                     <input type="number" name="items[0][jumlah]" class="form-control" min="1"
                                         value="1" required>
                                 </div>
                                 <div style="width: 150px;">
-                                    <label class="form-label">Tanggal Keluar</label>
+                                    <label class="form-label">Tanggal Keluar <span
+                                            style="color: var(--danger);">*</span></label>
                                     <input type="date" name="items[0][tgl_keluar]" class="form-control"
                                         value="{{ date('Y-m-d') }}" required>
                                 </div>
@@ -268,8 +458,11 @@
                             <div class="tools-fields" style="display: none; margin-top: 10px;">
                                 <div class="grid-2">
                                     <div class="form-group" style="margin-bottom: 0;">
-                                        <label class="form-label" style="font-size: 12px;">Rencana Kembali</label>
-                                        <input type="date" name="items[0][tgl_kembali_rencana]" class="form-control">
+                                        <label class="form-label" style="font-size: 12px;">Rencana Kembali <span
+                                                style="color: var(--danger);">*</span></label>
+                                        <input type="date" name="items[0][tgl_kembali_rencana]" class="form-control"
+                                            min="{{ date('Y-m-d') }}">
+                                        <small style="font-size: 11px;">Wajib untuk tools</small>
                                     </div>
                                     <div class="form-group" style="margin-bottom: 0;">
                                         <label class="form-label" style="font-size: 12px;">Keterangan</label>
@@ -280,7 +473,6 @@
                             </div>
                         </div>
                     </div>
-
                     <button type="button" onclick="addItem()" class="btn btn-secondary" style="width: 100%;">
                         <i class="fa-solid fa-plus"></i> Tambah Item Lagi
                     </button>
@@ -289,7 +481,7 @@
                     <button type="button" class="btn btn-secondary"
                         onclick="document.getElementById('modal-tambah').classList.remove('show')">Batal</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-check"></i> Konfirmasi Keluar Barang
+                        <i class="fa-solid fa-check"></i> Konfirmasi
                     </button>
                 </div>
             </form>
@@ -325,7 +517,7 @@
                     <button type="button" class="btn btn-secondary"
                         onclick="document.getElementById('modal-return').classList.remove('show')">Batal</button>
                     <button type="submit" class="btn btn-success">
-                        <i class="fa-solid fa-check"></i> Konfirmasi Kembali — Stok Bertambah
+                        <i class="fa-solid fa-check"></i> Konfirmasi
                     </button>
                 </div>
             </form>
@@ -342,8 +534,7 @@
                 </button>
             </div>
             <form method="POST" id="form-edit">
-                @csrf
-                @method('PUT')
+                @csrf @method('PUT')
                 <div class="modal-body">
                     <div class="alert alert-info" id="edit-info"></div>
                     <div class="form-group">
@@ -360,9 +551,8 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
                         onclick="document.getElementById('modal-edit').classList.remove('show')">Batal</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="fa-solid fa-check"></i> Simpan Perubahan
-                    </button>
+                    <button type="submit" class="btn btn-warning"><i class="fa-solid fa-check"></i> Simpan
+                        Perubahan</button>
                 </div>
             </form>
         </div>
@@ -379,17 +569,15 @@
                 </button>
             </div>
             <form method="POST" id="form-delete">
-                @csrf
-                @method('DELETE')
+                @csrf @method('DELETE')
                 <div class="modal-body">
                     <div class="alert alert-danger" id="delete-info"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
                         onclick="document.getElementById('modal-delete').classList.remove('show')">Batal</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fa-solid fa-trash"></i> Ya, Hapus Item
-                    </button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Ya, Hapus
+                        Item</button>
                 </div>
             </form>
         </div>
@@ -398,97 +586,95 @@
 
 @push('scripts')
     <script>
-        const barangList = @json($barang);
+        // Data barang dari server (pastikan controller mengirim dengan stok terkini)
+        const barangList = {!! json_encode(
+            $barang->map(function ($b) {
+                    return [
+                        'id' => $b->id,
+                        'nama_barang' => $b->nama_barang,
+                        'kategori' => $b->kategori,
+                        'stok' => $b->stok,
+                        'satuan' => $b->satuan,
+                    ];
+                })->toArray(),
+        ) !!};
 
         function searchBarang(input) {
             let keyword = input.value.toLowerCase();
-            let container = input.nextElementSibling.nextElementSibling;
+            let container = input.parentElement.querySelector('.suggestions');
+            if (!container) return;
             container.innerHTML = '';
-
             if (keyword.length < 1) return;
-
-            let results = barangList.filter(b =>
-                b.nama_barang.toLowerCase().includes(keyword)
-            );
-
+            let results = barangList.filter(b => b.nama_barang.toLowerCase().includes(keyword));
             results.forEach(b => {
                 let div = document.createElement('div');
-                div.innerHTML = `[${b.kategori}] ${b.nama_barang} (Stok: ${b.stok} ${b.satuan})`;
+                div.innerHTML = `[${b.kategori.toUpperCase()}] ${b.nama_barang} (Stok: ${b.stok} ${b.satuan})`;
                 div.style.cursor = "pointer";
                 div.style.padding = "5px";
-
                 div.onclick = function() {
                     input.value =
                         `[${b.kategori.toUpperCase()}] ${b.nama_barang} (Stok: ${b.stok} ${b.satuan})`;
                     input.nextElementSibling.value = b.id;
-
-                    // 🔥 TAMBAHAN PENTING
                     let cartItem = input.closest('.cart-item');
                     let toolsFields = cartItem.querySelector('.tools-fields');
-
                     if (b.kategori.toLowerCase() === 'tools') {
                         toolsFields.style.display = 'block';
+                        // set required for tgl_kembali_rencana
+                        let tglInput = toolsFields.querySelector('input[name*="tgl_kembali_rencana"]');
+                        if (tglInput) tglInput.required = true;
                     } else {
                         toolsFields.style.display = 'none';
+                        let tglInput = toolsFields.querySelector('input[name*="tgl_kembali_rencana"]');
+                        if (tglInput) tglInput.required = false;
                     }
-
                     container.innerHTML = '';
                 };
-
                 container.appendChild(div);
             });
         }
-    </script>
-    <script>
+
         let itemCount = 1;
 
         function addItem() {
-            let container = document.getElementById('cart-items');
-            let index = container.children.length;
-
+            let index = document.getElementById('cart-items').children.length;
             let today = getTodayDate();
             let html = `
-    <div class="cart-item" style="border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
-        <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <div style="flex: 1;">
-                <label class="form-label">Barang</label>
-                <input type="text" class="form-control barang-input"
-                    placeholder="Ketik nama barang..." oninput="searchBarang(this)">
-                <input type="hidden" name="items[${index}][barang_id]" class="barang-id">
-                <div class="suggestions" style="border:1px solid #ddd; max-height:150px; overflow:auto;"></div>
-            </div>
-            <div style="width: 100px;">
-                <label class="form-label">Jumlah</label>
-                <input type="number" name="items[${index}][jumlah]" class="form-control" min="1" value="1" required>
-            </div>
-            <div style="width: 150px;">
-                <label class="form-label">Tanggal Keluar</label>
-                <input type="date" name="items[${index}][tgl_keluar]" class="form-control"
-                    value="${today}" required>
-            </div>
-            <div style="padding-top: 26px;">
-                <button type="button" onclick="removeItem(this)" class="btn btn-sm btn-danger">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- 🔥 tools fields -->
-        <div class="tools-fields" style="display: none; margin-top: 10px;">
-            <div class="grid-2">
-                <div class="form-group">
-                    <label class="form-label" style="font-size: 12px;">Rencana Kembali</label>
-                    <input type="date" name="items[${index}][tgl_kembali_rencana]" class="form-control">
+            <div class="cart-item" style="border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <label class="form-label">Barang <span style="color: var(--danger);">*</span></label>
+                        <input type="text" class="form-control barang-input" placeholder="Ketik nama barang..." oninput="searchBarang(this)" autocomplete="off">
+                        <input type="hidden" name="items[${index}][barang_id]" class="barang-id">
+                        <div class="suggestions" style="border:1px solid #ddd; max-height:150px; overflow:auto; background:#fff; position:relative;"></div>
+                    </div>
+                    <div style="width: 100px;">
+                        <label class="form-label">Jumlah <span style="color: var(--danger);">*</span></label>
+                        <input type="number" name="items[${index}][jumlah]" class="form-control" min="1" value="1" required>
+                    </div>
+                    <div style="width: 150px;">
+                        <label class="form-label">Tanggal Keluar <span style="color: var(--danger);">*</span></label>
+                        <input type="date" name="items[${index}][tgl_keluar]" class="form-control" value="${today}" required>
+                    </div>
+                    <div style="padding-top: 26px;">
+                        <button type="button" onclick="removeItem(this)" class="btn btn-sm btn-danger">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" style="font-size: 12px;">Keterangan</label>
-                    <input type="text" name="items[${index}][keterangan]" class="form-control">
+                <div class="tools-fields" style="display: none; margin-top: 10px;">
+                    <div class="grid-2">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 12px;">Rencana Kembali <span style="color: var(--danger);">*</span></label>
+                            <input type="date" name="items[${index}][tgl_kembali_rencana]" class="form-control" min="${today}">
+                            <small style="font-size: 11px;">Wajib untuk tools</small>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 12px;">Keterangan</label>
+                            <input type="text" name="items[${index}][keterangan]" class="form-control" placeholder="Opsional">
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    `;
-
+            </div>`;
             document.getElementById('cart-items').insertAdjacentHTML('beforeend', html);
         }
 
@@ -497,17 +683,10 @@
             if (items.length > 1) btn.closest('.cart-item').remove();
         }
 
-        function onBarangChange(sel) {
-            const opt = sel.options[sel.selectedIndex];
-            const kategori = opt.dataset.kategori;
-            const toolsFields = sel.closest('.cart-item').querySelector('.tools-fields');
-            if (toolsFields) toolsFields.style.display = kategori === 'tools' ? 'block' : 'none';
-        }
-
         function openReturnModal(id, nama, jumlah, satuan) {
             document.getElementById('form-return').action = `/transaksi/${id}/return`;
             document.getElementById('return-info').innerHTML =
-                `<i class="fa-solid fa-info-circle"></i> Mengembalikan: <strong>${nama}</strong> — ${jumlah} ${satuan}<br>Stok akan bertambah otomatis setelah dikonfirmasi.`;
+                `<i class="fa-solid fa-info-circle"></i> Mengembalikan: <strong>${nama}</strong> ${jumlah} ${satuan}<br>Stok otomatis bertambah.`;
             document.getElementById('modal-return').classList.add('show');
         }
 

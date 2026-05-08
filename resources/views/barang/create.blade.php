@@ -21,7 +21,7 @@
                             <label class="form-label">Nama Barang <span style="color:var(--danger);">*</span></label>
                             <input type="text" name="nama_barang"
                                 class="form-control {{ $errors->has('nama_barang') ? 'is-invalid' : '' }}"
-                                value="{{ old('nama_barang') }}" placeholder="cth: Batu Gerinda 4&quot;" required>
+                                value="{{ old('nama_barang') }}" placeholder="cth: Batu Gerinda 4&quot;" required autocomplete="off">
                             @error('nama_barang')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -32,12 +32,12 @@
                             <select name="kategori" class="form-control {{ $errors->has('kategori') ? 'is-invalid' : '' }}"
                                 required>
                                 <option value="">-- Pilih Kategori --</option>
-                                <option value="cons" {{ old('kategori') == 'cons' ? 'selected' : '' }}>🟡 Consumable —
-                                    habis pakai</option>
+                                <option value="cons" {{ old('kategori') == 'cons' ? 'selected' : '' }}>🟡 Consumable 
+                                    </option>
                                 <option value="material" {{ old('kategori') == 'material' ? 'selected' : '' }}>🔵 Material
                                 </option>
-                                <option value="tools" {{ old('kategori') == 'tools' ? 'selected' : '' }}>🟢 Tools —
-                                    sistem pinjam</option>
+                                <option value="tools" {{ old('kategori') == 'tools' ? 'selected' : '' }}>🟢 Tools 
+                                    </option>
                             </select>
                             @error('kategori')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -83,24 +83,48 @@
                             <label class="form-label">Stok Minimum (Alert)</label>
                             <input type="number" name="stok_minimum" class="form-control"
                                 value="{{ old('stok_minimum', 5) }}" min="0">
-                            <div class="form-hint">Sistem alert jika stok ≤ nilai ini</div>
+                            <div class="form-hint">Sistem peringatan jika stok ≤ nilai ini</div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Foto Barang</label>
-                            <input type="file" name="foto" class="form-control" accept="image/*"
-                                onchange="previewImg(this)">
-                            <img id="img-preview" src="#"
-                                style="display:none; margin-top:8px; width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
-                        </div>
-                    </div>
+    <label class="form-label">
+        Harga
+        <span style="color:var(--danger);">*</span>
+    </label>
 
+    <input type="number"
+        name="prices"
+        id="harga-input"
+        step="0.01"
+        class="form-control {{ $errors->has('prices') ? 'is-invalid' : '' }}"
+        value="{{ old('prices') }}"
+        placeholder="cth: 100000"
+        required>
+
+    <div id="harga-hint"
+        class="form-hint"
+        style="display:none;">
+        Harga tidak digunakan untuk kategori tools
+    </div>
+
+    @error('prices')
+        <div class="invalid-feedback">
+            {{ $message }}
+        </div>
+    @enderror
+</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Foto Barang</label>
+                        <input type="file" name="foto" class="form-control" accept="image/*"
+                            onchange="previewImg(this)">
+                        <img id="img-preview" src="#"
+                            style="display:none; margin-top:8px; width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Keterangan</label>
                         <textarea name="keterangan" class="form-control" rows="3" placeholder="Deskripsi tambahan...">{{ old('keterangan') }}</textarea>
                     </div>
-
                     <hr class="divider">
-
                     <div style="display:flex; gap:8px; justify-content:flex-end;">
                         <a href="{{ route('barang.index') }}" class="btn btn-secondary">Batal</a>
                         <button type="submit" class="btn btn-dark">
@@ -116,17 +140,77 @@
 @endsection
 
 @push('scripts')
-    <script>
-        function previewImg(input) {
-            const preview = document.getElementById('img-preview');
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(input.files[0]);
+<script>
+
+    function previewImg(input) {
+
+        const preview =
+            document.getElementById('img-preview');
+
+        if (input.files && input.files[0]) {
+
+            const reader = new FileReader();
+
+            reader.onload = e => {
+
+                preview.src = e.target.result;
+
+                preview.style.display = 'block';
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // TOGGLE HARGA BERDASARKAN KATEGORI
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const kategoriSelect =
+            document.querySelector('[name="kategori"]');
+
+        const hargaInput =
+            document.getElementById('harga-input');
+
+        const hargaHint =
+            document.getElementById('harga-hint');
+
+        function toggleHarga() {
+
+            const kategori = kategoriSelect.value;
+
+            if (kategori === 'tools') {
+
+                hargaInput.value = '';
+
+                hargaInput.setAttribute('disabled', true);
+
+                hargaInput.removeAttribute('required');
+
+                hargaInput.style.background = '#f1f5f9';
+
+                hargaHint.style.display = 'block';
+
+            } else {
+
+                hargaInput.removeAttribute('disabled');
+
+                hargaInput.setAttribute('required', true);
+
+                hargaInput.style.background = '';
+
+                hargaHint.style.display = 'none';
             }
         }
-    </script>
+
+        // INIT
+        toggleHarga();
+
+        // CHANGE
+        kategoriSelect.addEventListener(
+            'change',
+            toggleHarga
+        );
+    });
+
+</script>
 @endpush

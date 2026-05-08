@@ -101,26 +101,34 @@
                                 disabled>
                             <div class="form-hint">Ubah stok lewat transaksi masuk / keluar</div>
                         </div>
-
                         <div class="form-group">
-                            <label class="form-label">Foto Barang</label>
-                            @if ($barang->foto)
-                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                                    <img src="{{ asset('storage/' . $barang->foto) }}"
-                                        style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
-                                    <span style="font-size:12px; color:var(--text-muted);">
-                                        Foto saat ini. Upload baru untuk mengganti.
-                                    </span>
-                                </div>
-                            @endif
-                            <input type="file" name="foto" class="form-control" accept="image/*">
+                            <label class="form-label">Harga Terkini</label>
+                            <input type="text" class="form-control"
+                                value="Rp {{ number_format($barang->prices, 2, ',', '.') }}" readonly
+                                style="background: #f8f9fa; color: var(--muted);">
+                            <small style="color: var(--muted);">Harga diperbarui otomatis saat input barang masuk</small>
                         </div>
-                    </div>
 
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Foto Barang</label>
+                        @if ($barang->foto)
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                                <img src="{{ asset('storage/' . $barang->foto) }}"
+                                    style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
+                                <span style="font-size:12px; color:var(--text-muted);">
+                                    Foto saat ini. Upload baru untuk mengganti.
+                                </span>
+                            </div>
+                        @endif
+                        <input type="file" name="foto" class="form-control" accept="image/*">
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Keterangan</label>
                         <textarea name="keterangan" class="form-control" rows="3">{{ old('keterangan', $barang->keterangan) }}</textarea>
                     </div>
+
+
 
                     <hr class="divider">
 

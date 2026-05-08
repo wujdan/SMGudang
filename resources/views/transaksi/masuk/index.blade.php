@@ -42,6 +42,7 @@
                         <th>Stok Sebelum</th>
                         <th>Stok Sesudah</th>
                         <th>Sumber</th>
+                        <th>Total Harga</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -61,6 +62,39 @@
                             <td style="color: var(--muted);">{{ $bm->stok_sebelum }}</td>
                             <td style="font-weight: 600;">{{ $bm->stok_sesudah }}</td>
                             <td style="color: var(--muted);">{{ $bm->sumber ?? '-' }}</td>
+                           <td>
+
+    @if($bm->barang->kategori === 'tools')
+
+        <span style="
+            font-size: 12px;
+            color: var(--muted);
+            font-style: italic;
+        ">
+            Tidak digunakan
+        </span>
+
+    @else
+
+        <div style="font-weight: 600;">
+
+            Rp {{ number_format($bm->harga_satuan, 0, ',', '.') }}
+
+            <div style="
+                font-size: 11px;
+                color: var(--muted);
+            ">
+
+                Total:
+                Rp {{ number_format($bm->jumlah * $bm->harga_satuan, 0, ',', '.') }}
+
+            </div>
+
+        </div>
+
+    @endif
+
+</td>
                             <td>
                                 <form method="POST" action="{{ route('barang-masuk.destroy', $bm) }}"
                                     onsubmit="return confirm('Hapus & rollback stok?')">

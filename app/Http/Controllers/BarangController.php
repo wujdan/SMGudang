@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\BarangMasuk;
+use App\Models\BatchBarang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class BarangController extends Controller
@@ -55,7 +58,12 @@ class BarangController extends Controller
             'stok_minimum' => 'required|integer|min:0',
             'foto' => 'nullable|image|max:2048',
             'keterangan' => 'nullable|string',
+            'prices' => 'nullable|numeric|min:0',
         ]);
+
+        if ($request->kategori === 'tools') {
+            $validated['prices'] = 0;
+        }
 
         $validated['kode_barang'] = Barang::generateKode($request->kategori);
 
@@ -63,7 +71,36 @@ class BarangController extends Controller
             $validated['foto'] = $request->file('foto')->store('barang', 'public');
         }
 
-        Barang::create($validated);
+        DB::transaction(function () use ($validated, $request) {
+            // Simpan barang dengan prices dari input
+            $barang = Barang::create($validated);
+
+            if ($request->stok > 0) {
+                $noTransaksi = BarangMasuk::generateNoTransaksi();
+                $tanggal = now()->toDateString();
+
+                BarangMasuk::create([
+                    'no_transaksi' => $noTransaksi,
+                    'barang_id' => $barang->id,
+                    'jumlah' => $request->stok,
+                    'harga_satuan' => $validated['prices'],
+                    'stok_sebelum' => 0,
+                    'stok_sesudah' => $request->stok,
+                    'tanggal' => $tanggal,
+                    'sumber' => 'Stok Awal',
+                    'keterangan' => 'Stok awal saat pembuatan barang',
+                ]);
+
+                BatchBarang::create([
+                    'barang_id' => $barang->id,
+                    'no_transaksi_masuk' => $noTransaksi,
+                    'tanggal_masuk' => $tanggal,
+                    'qty_awal' => $request->stok,
+                    'qty_sisa' => $request->stok,
+                    'harga_satuan' => $validated['prices'],
+                ]);
+            }
+        });
 
         return redirect()->route('barang.index')
             ->with('success', 'Barang berhasil ditambahkan!');
@@ -84,6 +121,8 @@ class BarangController extends Controller
 
     public function update(Request $request, Barang $barang)
     {
+        // Perhatikan: stok tidak boleh diupdate langsung melalui form edit.
+        // Stok hanya boleh berubah melalui transaksi masuk/keluar.
         $validated = $request->validate([
             'nama_barang' => 'required|string|max:255',
             'kategori' => 'required|in:cons,material,tools',
@@ -95,7 +134,9 @@ class BarangController extends Controller
         ]);
 
         if ($request->hasFile('foto')) {
-            if ($barang->foto) Storage::disk('public')->delete($barang->foto);
+            if ($barang->foto) {
+                Storage::disk('public')->delete($barang->foto);
+            }
             $validated['foto'] = $request->file('foto')->store('barang', 'public');
         }
 
@@ -107,8 +148,21 @@ class BarangController extends Controller
 
     public function destroy(Barang $barang)
     {
-        // Soft delete - non-aktifkan saja
-        $barang->update(['is_active' => false]);
+        DB::transaction(function () use ($barang) {
+
+            // hapus foto
+            if ($barang->foto) {
+                Storage::disk('public')->delete($barang->foto);
+            }
+
+            // hapus relasi manual jika belum cascade
+            $barang->barangMasuk()->delete();
+            $barang->batchBarang()->delete();
+
+            // hapus barang
+            $barang->delete();
+        });
+
         return redirect()->route('barang.index')
             ->with('success', 'Barang berhasil dihapus!');
     }
@@ -127,7 +181,12 @@ class BarangController extends Controller
         }
 
         return response()->json($barang->take(10)->get([
-            'id', 'kode_barang', 'nama_barang', 'kategori', 'satuan', 'stok'
+            'id',
+            'kode_barang',
+            'nama_barang',
+            'kategori',
+            'satuan',
+            'stok'
         ]));
     }
 }

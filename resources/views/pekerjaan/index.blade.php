@@ -35,6 +35,7 @@
                         <th>Tgl Mulai</th>
                         <th>Tools Aktif</th>
                         <th>Status</th>
+                        <th>Total HPP</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -58,6 +59,11 @@
                                 <span class="badge {{ $p->status == 'aktif' ? 'badge-warning' : 'badge-success' }}">
                                     {{ strtoupper($p->status) }}
                                 </span>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; font-size: 13px;">
+                                    Rp {{ number_format($p->transaksi->sum('total_hpp'), 0, ',', '.') }}
+                                </div>
                             </td>
                             <td>
                                 <div style="display: flex; gap: 4px;">

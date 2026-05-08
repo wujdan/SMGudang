@@ -8,9 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Pekerjaan extends Model
 {
     protected $fillable = [
-        'kode_pekerjaan', 'nama_pekerjaan', 'lokasi',
-        'nama_peminjam', 'tanggal_mulai', 'tanggal_selesai',
-        'status', 'keterangan'
+        'kode_pekerjaan',
+        'nama_pekerjaan',
+        'lokasi',
+        'nama_peminjam',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'status',
+        'keterangan'
     ];
 
     protected $casts = [
@@ -41,5 +46,10 @@ class Pekerjaan extends Model
         $month = date('m');
         $count = self::whereYear('created_at', $year)->whereMonth('created_at', $month)->count() + 1;
         return 'PKJ-' . $year . $month . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+    }
+
+    public function getTotalHppAttribute()
+    {
+        return $this->transaksi()->sum('total_hpp');
     }
 }

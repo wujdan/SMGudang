@@ -16,7 +16,7 @@
                         <input type="text" name="nama_pekerjaan"
                             class="form-control {{ $errors->has('nama_pekerjaan') ? 'is-invalid' : '' }}"
                             value="{{ old('nama_pekerjaan') }}" placeholder="Contoh: Ganti Ducting Area B - Line 3"
-                            required>
+                            required autocomplete="off">
                         @error('nama_pekerjaan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -28,12 +28,12 @@
                                     style="color: var(--danger);">*</span></label>
                             <input type="text" name="nama_peminjam" class="form-control"
                                 value="{{ old('nama_peminjam') }}" placeholder="Nama teknisi yang bertanggung jawab"
-                                required>
+                                required autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Lokasi Pekerjaan</label>
                             <input type="text" name="lokasi" class="form-control" value="{{ old('lokasi') }}"
-                                placeholder="Area / Section">
+                                placeholder="Area / Section" autocomplete="off">
                         </div>
                     </div>
 
@@ -49,10 +49,10 @@
                     </div>
 
                     <hr class="divider">
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
                         <a href="{{ route('pekerjaan.index') }}" class="btn btn-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-save"></i> Buat Pekerjaan → Tambah Barang
+                            <i class="fa-solid fa-save"></i> Buat Pekerjaan
                         </button>
                     </div>
                 </form>

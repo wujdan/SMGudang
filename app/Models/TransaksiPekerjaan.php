@@ -13,7 +13,8 @@ class TransaksiPekerjaan extends Model
         'no_transaksi', 'pekerjaan_id', 'barang_id',
         'jumlah', 'stok_sebelum', 'stok_sesudah',
         'tanggal_keluar', 'tgl_kembali_rencana', 'tgl_kembali_aktual',
-        'stok_sebelum_kembali', 'status_pinjam', 'keterangan'
+        'stok_sebelum_kembali', 'status_pinjam', 'keterangan',
+        'hpp_satuan', 'total_hpp'
     ];
 
     protected $casts = [

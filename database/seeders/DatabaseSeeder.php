@@ -9,31 +9,48 @@ use App\Models\BarangMasuk;
 use App\Models\TransaksiPekerjaan;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Bersihkan data lama biar nggak duplikat pas di-seed ulang
-        // DB::statement('SET FOREIGN_KEY_CHECKS=0;'); // Aktifkan jika pakai MySQL
-        // User::truncate();
-        // Barang::truncate();
-        // Pekerjaan::truncate();
-        
-        // 1. Create admin user
+        // 1. Admin user
         User::create([
             'name' => 'Admin Gudang',
             'email' => 'admin@gudang.com',
             'password' => Hash::make('password'),
         ]);
 
-        // 2. Seed barang cons (Consumables)
+        // 2. Barang Consumable (habis pakai)
         $cons = [
-            ['nama_barang' => 'Batu Gerinda 4"', 'satuan' => 'pcs', 'stok' => 100, 'stok_minimum' => 20],
-            ['nama_barang' => 'Kawat Las RB26', 'satuan' => 'kg', 'stok' => 30, 'stok_minimum' => 5],
-            ['nama_barang' => 'Isolasi Hitam', 'satuan' => 'roll', 'stok' => 25, 'stok_minimum' => 5],
-            ['nama_barang' => 'Mata Bor 10mm', 'satuan' => 'pcs', 'stok' => 20, 'stok_minimum' => 5],
+            [
+                'nama_barang' => 'Batu Gerinda 4"',
+                'satuan' => 'pcs',
+                'stok' => 100,
+                'stok_minimum' => 20,
+                'prices' => 15000,
+            ],
+            [
+                'nama_barang' => 'Kawat Las RB26',
+                'satuan' => 'kg',
+                'stok' => 30,
+                'stok_minimum' => 5,
+                'prices' => 85000,
+            ],
+            [
+                'nama_barang' => 'Isolasi Hitam',
+                'satuan' => 'roll',
+                'stok' => 25,
+                'stok_minimum' => 5,
+                'prices' => 12500,
+            ],
+            [
+                'nama_barang' => 'Mata Bor 10mm',
+                'satuan' => 'pcs',
+                'stok' => 20,
+                'stok_minimum' => 5,
+                'prices' => 28000,
+            ],
         ];
 
         foreach ($cons as $item) {
@@ -43,7 +60,7 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]));
 
-            // Tambahkan catatan barang masuk awal
+            // Catatan stok awal masuk
             BarangMasuk::create([
                 'no_transaksi' => BarangMasuk::generateNoTransaksi(),
                 'barang_id' => $barang->id,
@@ -55,11 +72,29 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 3. Seed tools (Peralatan)
+        // 3. Barang Tools (pinjam)
         $tools = [
-            ['nama_barang' => 'Travo Las 200A', 'satuan' => 'unit', 'stok' => 3, 'stok_minimum' => 1],
-            ['nama_barang' => 'Grinda Tangan 4"', 'satuan' => 'unit', 'stok' => 5, 'stok_minimum' => 2],
-            ['nama_barang' => 'Bor Listrik', 'satuan' => 'unit', 'stok' => 4, 'stok_minimum' => 1],
+            [
+                'nama_barang' => 'Travo Las 200A',
+                'satuan' => 'unit',
+                'stok' => 3,
+                'stok_minimum' => 1,
+                'prices' => 5000000,
+            ],
+            [
+                'nama_barang' => 'Grinda Tangan 4"',
+                'satuan' => 'unit',
+                'stok' => 5,
+                'stok_minimum' => 2,
+                'prices' => 750000,
+            ],
+            [
+                'nama_barang' => 'Bor Listrik',
+                'satuan' => 'unit',
+                'stok' => 4,
+                'stok_minimum' => 1,
+                'prices' => 1200000,
+            ],
         ];
 
         foreach ($tools as $item) {
@@ -70,7 +105,7 @@ class DatabaseSeeder extends Seeder
             ]));
         }
 
-        // 4. Seed Pekerjaan (Project)
+        // 4. Data Pekerjaan (Project)
         $pekerjaan = Pekerjaan::create([
             'kode_pekerjaan' => Pekerjaan::generateKode(),
             'nama_pekerjaan' => 'Pemasangan Ducting Area A',
@@ -80,8 +115,8 @@ class DatabaseSeeder extends Seeder
             'status' => 'aktif',
         ]);
 
-        // 5. Seed Transaksi (Contoh peminjaman barang)
-        $barangPinjam = Barang::where('kategori', 'tools')->first();
+        // 5. Contoh transaksi peminjaman tools
+        $barangPinjam = Barang::where('kategori', 'tools')->where('nama_barang', 'Grinda Tangan 4"')->first();
         if ($barangPinjam) {
             TransaksiPekerjaan::create([
                 'no_transaksi' => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
@@ -94,8 +129,8 @@ class DatabaseSeeder extends Seeder
                 'tgl_kembali_rencana' => now()->addDays(3),
                 'status_pinjam' => 'dipinjam',
             ]);
-            
-            // Kurangi stok barang asli
+
+            // Update stok barang
             $barangPinjam->decrement('stok', 1);
         }
     }
