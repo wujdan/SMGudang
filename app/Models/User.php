@@ -15,6 +15,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'is_active',        // ← tambahkan agar bisa diisi saat create/user
     ];
 
     protected $hidden = [
@@ -24,16 +25,39 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',   // ← casting ke boolean
     ];
 
-    // Helper method untuk cek role
+    // ─── Role Checkers ────────────────────────────
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin']);
+    }
+
+    public function isSuperAdmin()
+    {
+        return $this->role === 'super_admin';
     }
 
     public function isUser()
     {
         return $this->role === 'user';
+    }
+
+    // ─── Label Role ──────────────────────────────
+    public function getRoleLabelAttribute()
+    {
+        return match ($this->role) {
+            'super_admin' => 'Super Admin',
+            'admin' => 'Admin Gudang',
+            'user' => 'Pengguna',
+            default => 'User',
+        };
+    }
+
+    // ─── Status Aktif ────────────────────────────
+    public function isActive()
+    {
+        return $this->is_active;
     }
 }

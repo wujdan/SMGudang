@@ -1111,6 +1111,7 @@
             </div>
         </div>
 
+        {{-- Utama --}}
         <div class="sidebar-section">Utama</div>
         <ul class="sidebar-nav">
             <li>
@@ -1120,10 +1121,11 @@
             </li>
         </ul>
 
-        {{-- Master Data hanya untuk admin --}}
+        {{-- Master Data (dinamis per role) --}}
         <div class="sidebar-section">Master Data</div>
         <ul class="sidebar-nav">
-            @if (auth()->user()->role === 'admin')
+            @if (auth()->user()->isAdmin())
+                {{-- Admin & Super Admin --}}
                 <li>
                     <a href="{{ route('barang.index') }}" class="{{ request()->routeIs('barang.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-boxes-stacked"></i> Data Barang
@@ -1138,8 +1140,8 @@
             </li>
         </ul>
 
-        {{-- Menu Transaksi & Laporan hanya admin --}}
-        @if (auth()->user()->role === 'admin')
+        {{-- Transaksi (Admin & Super Admin) --}}
+        @if (auth()->user()->isAdmin())
             <div class="sidebar-section">Transaksi</div>
             <ul class="sidebar-nav">
                 <li>
@@ -1155,7 +1157,10 @@
                     </a>
                 </li>
             </ul>
+        @endif
 
+        {{-- Laporan (Admin & Super Admin) --}}
+        @if (auth()->user()->isAdmin())
             <div class="sidebar-section">Laporan</div>
             <ul class="sidebar-nav">
                 <li>
@@ -1188,8 +1193,14 @@
                         <i class="fa-solid fa-chart-line"></i> Statistik
                     </a>
                 </li>
+            </ul>
+        @endif
+
+        {{-- Pengguna (Super Admin Only) --}}
+        @if (auth()->user()->isSuperAdmin())
+            <div class="sidebar-section">User</div>
+            <ul class="sidebar-nav">
                 <li>
-                    {{-- Perbaikan: Menu Pengguna dengan route yang tepat --}}
                     <a href="{{ route('pengguna.index') }}"
                         class="{{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-users"></i> Pengguna
@@ -1198,6 +1209,7 @@
             </ul>
         @endif
 
+        {{-- Footer Tetap di Bawah --}}
         <div class="sidebar-footer">
             <div class="sidebar-user">
                 <div class="sidebar-avatar">
@@ -1210,7 +1222,7 @@
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="btn btn-secondary"f
+                <button type="submit" class="btn btn-secondary"
                     style="width:100%; justify-content:center; font-size:12.5px;">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>

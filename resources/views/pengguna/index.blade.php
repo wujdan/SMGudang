@@ -2,6 +2,74 @@
 
 @section('title', 'Manajemen Pengguna')
 
+@push('styles')
+    <style>
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #dc2626;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #16a34a;
+        }
+
+        input:disabled+.slider {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Animasi toast */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="container-fluid">
         <div class="card">
@@ -21,10 +89,11 @@
                         <thead>
                             <tr>
                                 <th style="width: 5%">No</th>
-                                <th style="width: 25%">Nama</th>
-                                <th style="width: 30%">Email</th>
-                                <th style="width: 15%">Role</th>
-                                <th style="width: 15%">Dibuat Pada</th>
+                                <th style="width: 22%">Nama</th>
+                                <th style="width: 25%">Email</th>
+                                <th style="width: 12%">Role</th>
+                                <th style="width: 12%">Status</th>
+                                <th style="width: 14%">Dibuat Pada</th>
                                 <th style="width: 10%">Aksi</th>
                             </tr>
                         </thead>
@@ -35,11 +104,21 @@
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
                                     <td>
-                                        @if ($user->role == 'admin')
+                                        @if ($user->role == 'super_admin')
+                                            <span class="badge badge-primary">Super Admin</span>
+                                        @elseif ($user->role == 'admin')
                                             <span class="badge badge-danger">Admin</span>
                                         @else
                                             <span class="badge badge-success">User</span>
                                         @endif
+                                    </td>
+                                    <td>
+                                        <label class="switch" style="display: inline-block;">
+                                            <input type="checkbox" class="toggle-active" data-user-id="{{ $user->id }}"
+                                                {{ $user->is_active ? 'checked' : '' }}
+                                                {{ $user->id == auth()->id() ? 'disabled' : '' }}>
+                                            <span class="slider round"></span>
+                                        </label>
                                     </td>
                                     <td>{{ $user->created_at ? $user->created_at->format('d/m/Y H:i') : '-' }}</td>
                                     <td>
@@ -63,7 +142,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="empty-state">
+                                    <td colspan="7" class="empty-state">
                                         <i class="fa-solid fa-users"></i>
                                         <p>Tidak ada data pengguna</p>
                                     </td>
@@ -113,6 +192,7 @@
                         <label class="form-label">Role <span class="text-danger">*</span></label>
                         <select name="role" class="form-control" required>
                             <option value="">Pilih Role</option>
+                            <option value="super_admin">Super Admin</option>
                             <option value="admin">Admin</option>
                             <option value="user">User</option>
                         </select>
@@ -152,6 +232,12 @@
                             style="width: 35%; padding: 8px; text-align: left; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
                             Role</th>
                         <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;" id="lihat_role">-</td>
+                    </tr>
+                    <tr>
+                        <th
+                            style="width: 35%; padding: 8px; text-align: left; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                            Status</th>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;" id="lihat_status">-</td>
                     </tr>
                     <tr>
                         <th
@@ -205,6 +291,7 @@
                         <label class="form-label">Role <span class="text-danger">*</span></label>
                         <select name="role" id="edit_role" class="form-control" required>
                             <option value="">Pilih Role</option>
+                            <option value="super_admin">Super Admin</option>
                             <option value="admin">Admin</option>
                             <option value="user">User</option>
                         </select>
@@ -251,16 +338,22 @@
 
         function closeTambahModal() {
             document.getElementById('modalTambah').style.display = 'none';
-            // Reset form
             document.querySelector('#modalTambah form').reset();
         }
 
         function lihatPengguna(user) {
             document.getElementById('lihat_nama').innerText = user.name;
             document.getElementById('lihat_email').innerText = user.email;
-            var roleHtml = user.role == 'admin' ? '<span class="badge badge-danger">Admin</span>' :
-                '<span class="badge badge-success">User</span>';
+            let roleHtml = '';
+            if (user.role === 'super_admin') {
+                roleHtml = '<span class="badge badge-primary">Super Admin</span>';
+            } else if (user.role === 'admin') {
+                roleHtml = '<span class="badge badge-danger">Admin</span>';
+            } else {
+                roleHtml = '<span class="badge badge-success">User</span>';
+            }
             document.getElementById('lihat_role').innerHTML = roleHtml;
+            document.getElementById('lihat_status').innerText = user.is_active ? 'Aktif' : 'Nonaktif';
             document.getElementById('lihat_created').innerText = user.created_at || '-';
             document.getElementById('lihat_updated').innerText = user.updated_at || '-';
             document.getElementById('modalLihat').style.display = 'flex';
@@ -302,5 +395,61 @@
                 }
             });
         });
+
+        // Toggle switch tanpa konfirmasi
+        document.querySelectorAll('.toggle-active').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const userId = this.dataset.userId;
+                const isActive = this.checked;
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                fetch(`/pengguna/${userId}/toggle-active`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                        } else {
+                            this.checked = !isActive;
+                            showToast(data.message || 'Gagal mengubah status', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.checked = !isActive;
+                        showToast('Terjadi kesalahan jaringan', 'error');
+                    });
+            });
+        });
+
+        // Fungsi toast
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = message;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.backgroundColor = type === 'success' ? '#16a34a' : '#dc2626';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '8px';
+            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            toast.style.zIndex = '9999';
+            toast.style.animation = 'fadeInUp 0.3s ease';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
     </script>
 @endpush

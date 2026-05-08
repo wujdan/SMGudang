@@ -6,7 +6,7 @@ use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PekerjaanController;
-use App\Http\Controllers\PenggunaController; // ✅ Tambahkan import ini
+use App\Http\Controllers\PenggunaController; // ✅ Tambahan
 use Illuminate\Support\Facades\Route;
 
 // ═══════════════════════════════════
@@ -28,21 +28,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // ---------------------------------
-    // PEKERJAAN - UMUM (User & Admin)
+    // PEKERJAAN - UMUM (User & Admin & Super Admin)
     // ---------------------------------
     Route::get('pekerjaan', [PekerjaanController::class, 'index'])->name('pekerjaan.index');
 
-    // Form tambah pekerjaan KHUSUS ADMIN, letakkan sebelum show
+    // Form tambah pekerjaan → ADMIN & SUPER ADMIN
     Route::get('pekerjaan/create', [PekerjaanController::class, 'create'])
         ->name('pekerjaan.create')
-        ->middleware('role:admin');
+        ->middleware('role:admin,super_admin');
 
     Route::get('pekerjaan/{pekerjaan}', [PekerjaanController::class, 'show'])->name('pekerjaan.show');
 
     // ---------------------------------
-    // KHUSUS ADMIN
+    // FITUR ADMIN (Admin & Super Admin)
     // ---------------------------------
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware('role:admin,super_admin')->group(function () {
 
         // --- Resource Barang (penuh) ---
         Route::get('/barang/search', [BarangController::class, 'search'])->name('barang.search');
@@ -81,9 +81,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/rekap', [LaporanController::class, 'rekap'])->name('rekap');
         });
 
-        // --- ✅ Manajemen Pengguna (User Management) ---
+    }); // end role:admin,super_admin
+
+    // ---------------------------------
+    // KHUSUS SUPER ADMIN (Manajemen Pengguna)
+    // ---------------------------------
+    Route::middleware('role:super_admin')->group(function () {
         Route::resource('pengguna', PenggunaController::class);
-
-    }); // end role:admin
-
+    });
+    Route::patch('pengguna/{pengguna}/toggle-active', [PenggunaController::class, 'toggleActive'])
+        ->name('pengguna.toggle-active');
 }); // end auth
