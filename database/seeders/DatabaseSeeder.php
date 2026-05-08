@@ -2,136 +2,316 @@
 
 namespace Database\Seeders;
 
-use App\Models\Barang;
-use App\Models\User;
-use App\Models\Pekerjaan;
-use App\Models\BarangMasuk;
-use App\Models\TransaksiPekerjaan;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+
+use App\Models\User;
+use App\Models\Barang;
+use App\Models\BarangMasuk;
+use App\Models\BatchBarang;
+use App\Models\Pekerjaan;
+use App\Models\TransaksiPekerjaan;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Admin user
+        /*
+        |--------------------------------------------------------------------------
+        | USER
+        |--------------------------------------------------------------------------
+        */
+
         User::create([
-            'name' => 'Admin Gudang',
+            'name' => 'Administrator',
             'email' => 'admin@gudang.com',
             'password' => Hash::make('password'),
         ]);
 
-        // 2. Barang Consumable (habis pakai)
-        $cons = [
-            [
-                'nama_barang' => 'Batu Gerinda 4"',
-                'satuan' => 'pcs',
-                'stok' => 100,
-                'stok_minimum' => 20,
-                'prices' => 15000,
-            ],
-            [
-                'nama_barang' => 'Kawat Las RB26',
-                'satuan' => 'kg',
-                'stok' => 30,
-                'stok_minimum' => 5,
-                'prices' => 85000,
-            ],
-            [
-                'nama_barang' => 'Isolasi Hitam',
-                'satuan' => 'roll',
-                'stok' => 25,
-                'stok_minimum' => 5,
-                'prices' => 12500,
-            ],
-            [
-                'nama_barang' => 'Mata Bor 10mm',
-                'satuan' => 'pcs',
-                'stok' => 20,
-                'stok_minimum' => 5,
-                'prices' => 28000,
-            ],
-        ];
+        /*
+        |--------------------------------------------------------------------------
+        | BARANG
+        |--------------------------------------------------------------------------
+        */
 
-        foreach ($cons as $item) {
-            $barang = Barang::create(array_merge($item, [
-                'kode_barang' => Barang::generateKode('cons'),
-                'kategori' => 'cons',
-                'is_active' => true,
-            ]));
+        $barangList = [
 
-            // Catatan stok awal masuk
-            BarangMasuk::create([
-                'no_transaksi' => BarangMasuk::generateNoTransaksi(),
-                'barang_id' => $barang->id,
-                'jumlah' => $item['stok'],
-                'stok_sebelum' => 0,
-                'stok_sesudah' => $item['stok'],
-                'tanggal' => now(),
-                'sumber' => 'Stok Awal',
-            ]);
-        }
-
-        // 3. Barang Tools (pinjam)
-        $tools = [
+            // TOOLS
             [
-                'nama_barang' => 'Travo Las 200A',
-                'satuan' => 'unit',
-                'stok' => 3,
-                'stok_minimum' => 1,
-                'prices' => 5000000,
-            ],
-            [
-                'nama_barang' => 'Grinda Tangan 4"',
-                'satuan' => 'unit',
-                'stok' => 5,
-                'stok_minimum' => 2,
-                'prices' => 750000,
-            ],
-            [
-                'nama_barang' => 'Bor Listrik',
-                'satuan' => 'unit',
-                'stok' => 4,
-                'stok_minimum' => 1,
-                'prices' => 1200000,
-            ],
-        ];
-
-        foreach ($tools as $item) {
-            Barang::create(array_merge($item, [
-                'kode_barang' => Barang::generateKode('tools'),
+                'nama_barang' => 'Bor Bosch',
                 'kategori' => 'tools',
+                'satuan' => 'pcs',
+                'stok_minimum' => 1,
+                'prices' => 850000,
+            ],
+
+            [
+                'nama_barang' => 'Tang Kombinasi',
+                'kategori' => 'tools',
+                'satuan' => 'pcs',
+                'stok_minimum' => 2,
+                'prices' => 75000,
+            ],
+
+            [
+                'nama_barang' => 'Obeng Set',
+                'kategori' => 'tools',
+                'satuan' => 'set',
+                'stok_minimum' => 2,
+                'prices' => 120000,
+            ],
+
+            // MATERIAL
+            [
+                'nama_barang' => 'Kabel NYM 2x1.5',
+                'kategori' => 'material',
+                'satuan' => 'roll',
+                'stok_minimum' => 5,
+                'prices' => 450000,
+            ],
+
+            [
+                'nama_barang' => 'Pipa PVC',
+                'kategori' => 'material',
+                'satuan' => 'batang',
+                'stok_minimum' => 10,
+                'prices' => 65000,
+            ],
+
+            // CONSUMABLE
+            [
+                'nama_barang' => 'Isolasi Listrik',
+                'kategori' => 'cons',
+                'satuan' => 'pcs',
+                'stok_minimum' => 10,
+                'prices' => 12000,
+            ],
+
+            [
+                'nama_barang' => 'Cable Tie',
+                'kategori' => 'cons',
+                'satuan' => 'pack',
+                'stok_minimum' => 15,
+                'prices' => 18000,
+            ],
+        ];
+
+        $barangs = [];
+
+        foreach ($barangList as $item) {
+
+            $barang = Barang::create([
+                'kode_barang' => Barang::generateKode($item['kategori']),
+                'nama_barang' => $item['nama_barang'],
+                'kategori' => $item['kategori'],
+                'satuan' => $item['satuan'],
+                'stok' => 0,
+                'stok_minimum' => $item['stok_minimum'],
+                'prices' => $item['prices'],
                 'is_active' => true,
-            ]));
-        }
-
-        // 4. Data Pekerjaan (Project)
-        $pekerjaan = Pekerjaan::create([
-            'kode_pekerjaan' => Pekerjaan::generateKode(),
-            'nama_pekerjaan' => 'Pemasangan Ducting Area A',
-            'lokasi' => 'Workshop Utama',
-            'nama_peminjam' => 'Budi Santoso',
-            'tanggal_mulai' => now(),
-            'status' => 'aktif',
-        ]);
-
-        // 5. Contoh transaksi peminjaman tools
-        $barangPinjam = Barang::where('kategori', 'tools')->where('nama_barang', 'Grinda Tangan 4"')->first();
-        if ($barangPinjam) {
-            TransaksiPekerjaan::create([
-                'no_transaksi' => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
-                'pekerjaan_id' => $pekerjaan->id,
-                'barang_id' => $barangPinjam->id,
-                'jumlah' => 1,
-                'stok_sebelum' => $barangPinjam->stok,
-                'stok_sesudah' => $barangPinjam->stok - 1,
-                'tanggal_keluar' => now(),
-                'tgl_kembali_rencana' => now()->addDays(3),
-                'status_pinjam' => 'dipinjam',
+                'keterangan' => 'Seeder data barang',
             ]);
 
-            // Update stok barang
-            $barangPinjam->decrement('stok', 1);
+            $barangs[] = $barang;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | BARANG MASUK + FIFO BATCH
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($barangs as $barang) {
+
+            for ($i = 1; $i <= 3; $i++) {
+
+                $qty = rand(5, 25);
+
+                $harga = $barang->prices + rand(-10000, 50000);
+
+                $stokSebelum = $barang->stok;
+                $stokSesudah = $stokSebelum + $qty;
+
+                $tanggal = now()->subDays(rand(10, 90));
+
+                $barangMasuk = BarangMasuk::create([
+                    'no_transaksi' => BarangMasuk::generateNoTransaksi(),
+                    'barang_id' => $barang->id,
+                    'jumlah' => $qty,
+                    'harga_satuan' => $harga,
+                    'stok_sebelum' => $stokSebelum,
+                    'stok_sesudah' => $stokSesudah,
+                    'tanggal' => $tanggal,
+                    'sumber' => 'Supplier Seeder',
+                    'keterangan' => 'Seeder barang masuk',
+                ]);
+
+                BatchBarang::create([
+                    'barang_id' => $barang->id,
+                    'no_transaksi_masuk' => $barangMasuk->no_transaksi,
+                    'tanggal_masuk' => $tanggal,
+                    'qty_awal' => $qty,
+                    'qty_sisa' => $qty,
+                    'harga_satuan' => $harga,
+                ]);
+
+                $barang->update([
+                    'stok' => $stokSesudah
+                ]);
+
+                $barang->refresh();
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PEKERJAAN
+        |--------------------------------------------------------------------------
+        */
+
+        $pekerjaanData = [
+
+            [
+                'nama_pekerjaan' => 'Instalasi CCTV Gedung A',
+                'lokasi' => 'Surabaya',
+                'nama_peminjam' => 'Budi',
+                'status' => 'aktif',
+            ],
+
+            [
+                'nama_pekerjaan' => 'Perbaikan Panel Listrik',
+                'lokasi' => 'Sidoarjo',
+                'nama_peminjam' => 'Andi',
+                'status' => 'aktif',
+            ],
+
+            [
+                'nama_pekerjaan' => 'Maintenance Gudang',
+                'lokasi' => 'Gresik',
+                'nama_peminjam' => 'Rizal',
+                'status' => 'selesai',
+            ],
+        ];
+
+        $pekerjaans = [];
+
+        foreach ($pekerjaanData as $item) {
+
+            $pekerjaan = Pekerjaan::create([
+                'kode_pekerjaan' => Pekerjaan::generateKode(),
+                'nama_pekerjaan' => $item['nama_pekerjaan'],
+                'lokasi' => $item['lokasi'],
+                'nama_peminjam' => $item['nama_peminjam'],
+                'tanggal_mulai' => now()->subDays(rand(5, 30)),
+                'tanggal_selesai' => $item['status'] === 'selesai'
+                    ? now()->subDays(rand(1, 4))
+                    : null,
+                'status' => $item['status'],
+                'keterangan' => 'Seeder pekerjaan',
+            ]);
+
+            $pekerjaans[] = $pekerjaan;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSAKSI PEKERJAAN (FIFO)
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($pekerjaans as $pekerjaan) {
+
+            $randomBarangs = Barang::inRandomOrder()->take(4)->get();
+
+            foreach ($randomBarangs as $barang) {
+
+                $jumlah = rand(1, 3);
+
+                if ($barang->stok < $jumlah) {
+                    continue;
+                }
+
+                $batch = $barang->batchAktif()->first();
+
+                if (!$batch) {
+                    continue;
+                }
+
+                $stokSebelum = $barang->stok;
+                $stokSesudah = $stokSebelum - $jumlah;
+
+                $hppSatuan = $batch->harga_satuan;
+                $totalHpp = $hppSatuan * $jumlah;
+
+                $statusPinjam = null;
+                $tglRencana = null;
+                $tglAktual = null;
+
+                /*
+                |--------------------------------------------------------------------------
+                | KHUSUS TOOLS
+                |--------------------------------------------------------------------------
+                */
+
+                if ($barang->kategori === 'tools') {
+
+                    $statusPinjam = rand(0, 1)
+                        ? 'dipinjam'
+                        : 'dikembalikan';
+
+                    $tglRencana = now()->addDays(rand(3, 10));
+
+                    if ($statusPinjam === 'dikembalikan') {
+                        $tglAktual = now()->subDays(rand(1, 3));
+                    }
+                }
+
+                TransaksiPekerjaan::create([
+                    'no_transaksi' => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
+
+                    'pekerjaan_id' => $pekerjaan->id,
+                    'barang_id' => $barang->id,
+
+                    'jumlah' => $jumlah,
+
+                    'hpp_satuan' => $hppSatuan,
+                    'total_hpp' => $totalHpp,
+
+                    'stok_sebelum' => $stokSebelum,
+                    'stok_sesudah' => $stokSesudah,
+
+                    'tanggal_keluar' => now()->subDays(rand(1, 10)),
+
+                    'tgl_kembali_rencana' => $tglRencana,
+                    'tgl_kembali_aktual' => $tglAktual,
+
+                    'stok_sebelum_kembali' => null,
+
+                    'status_pinjam' => $statusPinjam,
+
+                    'keterangan' => 'Seeder transaksi pekerjaan',
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | UPDATE STOK BARANG
+                |--------------------------------------------------------------------------
+                */
+
+                $barang->update([
+                    'stok' => $stokSesudah
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | UPDATE FIFO BATCH
+                |--------------------------------------------------------------------------
+                */
+
+                $batch->update([
+                    'qty_sisa' => max(0, $batch->qty_sisa - $jumlah)
+                ]);
+            }
         }
     }
 }

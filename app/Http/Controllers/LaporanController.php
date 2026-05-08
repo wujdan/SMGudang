@@ -63,48 +63,89 @@ class LaporanController extends Controller
         }
 
         if ($request->filled('kategori')) {
-            $query->whereHas('barang', fn($q) => $q->where('kategori', $request->kategori));
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where('kategori', $request->kategori);
+            });
         }
 
         $data = $query->orderByDesc('tanggal')->get();
+
+        // SUMMARY
         $totalItems = $data->count();
         $totalJumlah = $data->sum('jumlah');
 
+        $totalNominal = $data->sum(function ($item) {
+            return $item->jumlah * $item->harga_satuan;
+        });
+
+        // EXPORT EXCEL
         if ($request->export === 'excel') {
             return Excel::download(
-                new BarangMasukExport($data, $request->dari, $request->sampai, $request->kategori),
+                new BarangMasukExport(
+                    $data,
+                    $request->dari,
+                    $request->sampai,
+                    $request->kategori
+                ),
                 'laporan-masuk-' . date('Ymd') . '.xlsx'
             );
         }
 
+        // EXPORT PDF
         if ($request->export === 'pdf') {
-            $pdf = Pdf::loadView('laporan.masuk-pdf', compact('data', 'totalItems', 'totalJumlah'))
-                ->setPaper('a4', 'landscape');
+            $pdf = Pdf::loadView('laporan.masuk-pdf', compact(
+                'data',
+                'totalItems',
+                'totalJumlah',
+                'totalNominal'
+            ))->setPaper('a4', 'landscape');
+
             return $pdf->download('laporan-masuk-' . date('Ymd') . '.pdf');
         }
 
-        return view('laporan.masuk', compact('data', 'totalItems', 'totalJumlah'));
+        return view('laporan.masuk', compact(
+            'data',
+            'totalItems',
+            'totalJumlah',
+            'totalNominal'
+        ));
     }
 
     public function keluar(Request $request)
     {
         $query = TransaksiPekerjaan::with(['barang', 'pekerjaan']);
 
+        // FILTER TANGGAL
         if ($request->filled('dari') && $request->filled('sampai')) {
-            $query->whereBetween('tanggal_keluar', [$request->dari, $request->sampai]);
+            $query->whereBetween('tanggal_keluar', [
+                $request->dari,
+                $request->sampai
+            ]);
         } else {
             $query->where('tanggal_keluar', '>=', now()->subDays(30));
         }
 
+        // FILTER KATEGORI
         if ($request->filled('kategori')) {
-            $query->whereHas('barang', fn($q) => $q->where('kategori', $request->kategori));
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where('kategori', $request->kategori);
+            });
         }
 
+        // FILTER NAMA BARANG
         if ($request->filled('nama_barang')) {
-        $query->whereHas('barang', fn($q) => $q->where('nama_barang', 'LIKE', '%' . $request->nama_barang . '%'));
-    }
+            $query->whereHas('barang', function ($q) use ($request) {
+                $q->where(
+                    'nama_barang',
+                    'LIKE',
+                    '%' . $request->nama_barang . '%'
+                );
+            });
+        }
 
+        // FILTER STATUS
         if ($request->filled('status')) {
+
             if ($request->status === 'dipinjam') {
                 $query->where('status_pinjam', 'dipinjam');
             } elseif ($request->status === 'dikembalikan') {
@@ -114,26 +155,67 @@ class LaporanController extends Controller
             }
         }
 
-        $data = $query->orderByDesc('updated_at')->get();
-        $dari = $request->filled('dari') ? $request->dari : now()->subDays(30)->format('Y-m-d');
-        $sampai = $request->filled('sampai') ? $request->sampai : now()->format('Y-m-d');
+        $data = $query
+            ->orderByDesc('updated_at')
+            ->get();
 
+        // RANGE TANGGAL
+        $dari = $request->filled('dari')
+            ? $request->dari
+            : now()->subDays(30)->format('Y-m-d');
+
+        $sampai = $request->filled('sampai')
+            ? $request->sampai
+            : now()->format('Y-m-d');
+
+        // SUMMARY
+        $totalItems = $data->count();
+        $totalJumlah = $data->sum('jumlah');
+
+        // HPP TOTAL
+        $totalHpp = $data->sum('total_hpp');
+
+        // EXPORT EXCEL
         if ($request->export === 'excel') {
+
             return Excel::download(
-                new BarangKeluarExport($data, $dari, $sampai, $request->kategori, $request->status),
+                new BarangKeluarExport(
+                    $data,
+                    $dari,
+                    $sampai,
+                    $request->kategori,
+                    $request->status
+                ),
                 'laporan-keluar-' . date('Ymd') . '.xlsx'
             );
         }
 
+        // EXPORT PDF
         if ($request->export === 'pdf') {
-            $pdf = Pdf::loadView('laporan.keluar-pdf', compact('data'))
-                ->setPaper('a4', 'landscape');
-            return $pdf->download('laporan-keluar-' . date('Ymd') . '.pdf');
+
+            $pdf = Pdf::loadView('laporan.keluar-pdf', compact(
+                'data',
+                'totalItems',
+                'totalJumlah',
+                'totalHpp',
+                'dari',
+                'sampai'
+            ))->setPaper('a4', 'landscape');
+
+            return $pdf->download(
+                'laporan-keluar-' . date('Ymd') . '.pdf'
+            );
         }
 
-        return view('laporan.keluar', compact('data'));
+        return view('laporan.keluar', compact(
+            'data',
+            'totalItems',
+            'totalJumlah',
+            'totalHpp',
+            'dari',
+            'sampai'
+        ));
     }
-
     public function statistik(Request $request)
     {
         $periode = $request->periode ?? 30;
@@ -206,76 +288,146 @@ class LaporanController extends Controller
     }
 
     public function rekap(Request $request)
-    {
-        // Default tanggal (hanya untuk tampilan, bukan memaksa query)
-        $dari = $request->input('dari', now()->subDays(30)->format('Y-m-d'));
-        $sampai = $request->input('sampai', now()->format('Y-m-d'));
+{
+    // DEFAULT RANGE
+    $dari = $request->input(
+        'dari',
+        now()->subDays(30)->format('Y-m-d')
+    );
 
-        $query = Pekerjaan::with(['transaksi' => function($q) {
-          $q->orderBy('updated_at', 'desc')->with('barang');
-        }]);
+    $sampai = $request->input(
+        'sampai',
+        now()->format('Y-m-d')
+    );
 
-        // 🔍 Filter search
-        if ($request->filled('search')) {
-            $query->where('nama_pekerjaan', 'like', '%' . $request->search . '%');
+    $query = Pekerjaan::with([
+        'transaksi' => function ($q) {
+            $q->with('barang')
+              ->orderBy('updated_at', 'desc');
         }
+    ]);
 
-        // 🔍 Filter status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // 🔍 Filter per pekerjaan (untuk export tombol per baris)
-        if ($request->filled('pekerjaan_id')) {
-            $query->where('id', $request->pekerjaan_id);
-        } else {
-            // 📅 Filter tanggal — hanya aktif jika bukan export per pekerjaan
-            $query->whereBetween('tanggal_mulai', [$dari, $sampai]);
-        }
-
-        $export = $request->get('export');
-
-        // 📊 Ambil data
-        if ($export === 'pdf' || $export === 'excel') {
-            $pekerjaan = $query->orderByDesc('tanggal_mulai')->get();
-        } else {
-            $pekerjaan = $query->orderByDesc('tanggal_mulai')->paginate(10)->withQueryString();
-        }
-
-       // 📄 Export PDF
-        if ($export === 'pdf') {
-            $namaFile = $request->filled('pekerjaan_id')
-                ? 'rekap-pekerjaan-' . $pekerjaan->first()?->kode_pekerjaan . '.pdf'
-                : 'rekap-pekerjaan.pdf';
-
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('laporan.rekap_pdf', [
-                'pekerjaan' => $pekerjaan,
-                'dari'      => $dari,
-                'sampai'    => $sampai,
-                'search'    => $request->search,
-                'status'    => $request->status,
-            ])->setPaper('a4', 'landscape');
-
-            return $pdf->download($namaFile);
-            }
-
-        // 📊 Export Excel
-        if ($export === 'excel') {
-            $namaFile = $request->filled('pekerjaan_id')
-                ? 'rekap-pekerjaan-' . $pekerjaan->first()?->kode_pekerjaan . '.xlsx'
-                : 'rekap-pekerjaan.xlsx';
-
-            return \Maatwebsite\Excel\Facades\Excel::download(
-                new \App\Exports\PekerjaanExport(
-                    $pekerjaan,
-                    $dari,
-                    $sampai,
-                    $request->search,
-                    $request->status
-                ),
-                $namaFile
-            );
-        }
-        return view('laporan.rekap', compact('pekerjaan', 'dari', 'sampai'));
+    // SEARCH
+    if ($request->filled('search')) {
+        $query->where(
+            'nama_pekerjaan',
+            'like',
+            '%' . $request->search . '%'
+        );
     }
+
+    // STATUS
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // FILTER PEKERJAAN SPESIFIK
+    if ($request->filled('pekerjaan_id')) {
+
+        $query->where('id', $request->pekerjaan_id);
+
+    } else {
+
+        $query->whereBetween('tanggal_mulai', [
+            $dari,
+            $sampai
+        ]);
+    }
+
+    $export = $request->get('export');
+
+    // GET DATA
+    if ($export === 'pdf' || $export === 'excel') {
+
+        $pekerjaan = $query
+            ->orderByDesc('tanggal_mulai')
+            ->get();
+
+    } else {
+
+        $pekerjaan = $query
+            ->orderByDesc('tanggal_mulai')
+            ->paginate(10)
+            ->withQueryString();
+    }
+
+    // COLLECTION UNTUK HITUNG TOTAL
+    $collection = $pekerjaan instanceof \Illuminate\Pagination\AbstractPaginator
+        ? $pekerjaan->getCollection()
+        : $pekerjaan;
+
+    // SUMMARY
+    $totalPekerjaan = $collection->count();
+
+    $totalTransaksi = $collection->sum(function ($p) {
+        return $p->transaksi->count();
+    });
+
+    $totalQty = $collection->sum(function ($p) {
+        return $p->transaksi->sum('jumlah');
+    });
+
+    $grandTotalHpp = $collection->sum(function ($p) {
+        return $p->transaksi->sum('total_hpp');
+    });
+
+    // EXPORT PDF
+    if ($export === 'pdf') {
+
+        $namaFile = $request->filled('pekerjaan_id')
+            ? 'rekap-pekerjaan-' .
+                $pekerjaan->first()?->kode_pekerjaan .
+                '.pdf'
+            : 'rekap-pekerjaan.pdf';
+
+        $pdf = Pdf::loadView('laporan.rekap_pdf', [
+            'pekerjaan'       => $pekerjaan,
+            'dari'            => $dari,
+            'sampai'          => $sampai,
+            'search'          => $request->search,
+            'status'          => $request->status,
+
+            // SUMMARY
+            'totalPekerjaan'  => $totalPekerjaan,
+            'totalTransaksi'  => $totalTransaksi,
+            'totalQty'        => $totalQty,
+            'grandTotalHpp'   => $grandTotalHpp,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download($namaFile);
+    }
+
+    // EXPORT EXCEL
+    if ($export === 'excel') {
+
+        $namaFile = $request->filled('pekerjaan_id')
+            ? 'rekap-pekerjaan-' .
+                $pekerjaan->first()?->kode_pekerjaan .
+                '.xlsx'
+            : 'rekap-pekerjaan.xlsx';
+
+        return Excel::download(
+            new \App\Exports\PekerjaanExport(
+                $collection,
+                $dari,
+                $sampai,
+                $request->search,
+                $request->status
+            ),
+            $namaFile
+        );
+    }
+
+    return view('laporan.rekap', compact(
+        'pekerjaan',
+        'dari',
+        'sampai',
+
+        // SUMMARY
+        'totalPekerjaan',
+        'totalTransaksi',
+        'totalQty',
+        'grandTotalHpp'
+    ));
+}
 }
