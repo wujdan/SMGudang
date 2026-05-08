@@ -35,6 +35,7 @@ class PekerjaanController extends Controller
 
     public function create()
     {
+        $this->authorize('admin-only');
         return view('pekerjaan.create');
     }
 
@@ -70,6 +71,9 @@ class PekerjaanController extends Controller
 
     public function edit(Pekerjaan $pekerjaan)
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403);
+        }
         return view('pekerjaan.edit', compact('pekerjaan'));
     }
 

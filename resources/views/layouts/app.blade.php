@@ -1120,13 +1120,16 @@
             </li>
         </ul>
 
+        {{-- Master Data hanya untuk admin --}}
         <div class="sidebar-section">Master Data</div>
         <ul class="sidebar-nav">
-            <li>
-                <a href="{{ route('barang.index') }}" class="{{ request()->routeIs('barang.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-boxes-stacked"></i> Data Barang
-                </a>
-            </li>
+            @if (auth()->user()->role === 'admin')
+                <li>
+                    <a href="{{ route('barang.index') }}" class="{{ request()->routeIs('barang.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-boxes-stacked"></i> Data Barang
+                    </a>
+                </li>
+            @endif
             <li>
                 <a href="{{ route('pekerjaan.index') }}"
                     class="{{ request()->routeIs('pekerjaan.*') ? 'active' : '' }}">
@@ -1135,55 +1138,58 @@
             </li>
         </ul>
 
-        <div class="sidebar-section">Transaksi</div>
-        <ul class="sidebar-nav">
-            <li>
-                <a href="{{ route('barang-masuk.index') }}"
-                    class="{{ request()->routeIs('barang-masuk.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-truck-ramp-box"></i> Barang Masuk
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('barang-keluar.index') }}"
-                    class="{{ request()->routeIs('barang-keluar.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-right-from-bracket"></i> Barang Keluar
-                </a>
-            </li>
-        </ul>
+        {{-- Menu Transaksi & Laporan hanya admin --}}
+        @if (auth()->user()->role === 'admin')
+            <div class="sidebar-section">Transaksi</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="{{ route('barang-masuk.index') }}"
+                        class="{{ request()->routeIs('barang-masuk.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-truck-ramp-box"></i> Barang Masuk
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('barang-keluar.index') }}"
+                        class="{{ request()->routeIs('barang-keluar.*') ? 'active' : '' }}">
+                        <i class="fa-solid fa-right-from-bracket"></i> Barang Keluar
+                    </a>
+                </li>
+            </ul>
 
-        <div class="sidebar-section">Laporan</div>
-        <ul class="sidebar-nav">
-            <li>
-                <a href="{{ route('laporan.stok') }}"
-                    class="{{ request()->routeIs('laporan.stok') ? 'active' : '' }}">
-                    <i class="fa-solid fa-clipboard-list"></i> Stok Terkini
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('laporan.masuk') }}"
-                    class="{{ request()->routeIs('laporan.masuk') ? 'active' : '' }}">
-                    <i class="fa-solid fa-file-import"></i> Barang Masuk
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('laporan.keluar') }}"
-                    class="{{ request()->routeIs('laporan.keluar') ? 'active' : '' }}">
-                    <i class="fa-solid fa-file-export"></i> Barang Keluar
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('laporan.rekap') }}"
-                    class="{{ request()->routeIs('laporan.rekap') ? 'active' : '' }}">
-                    <i class="fa-solid fa-folder-open"></i> Rekap Pekerjaan
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('laporan.statistik') }}"
-                    class="{{ request()->routeIs('laporan.statistik') ? 'active' : '' }}">
-                    <i class="fa-solid fa-chart-line"></i> Statistik
-                </a>
-            </li>
-        </ul>
+            <div class="sidebar-section">Laporan</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="{{ route('laporan.stok') }}"
+                        class="{{ request()->routeIs('laporan.stok') ? 'active' : '' }}">
+                        <i class="fa-solid fa-clipboard-list"></i> Stok Terkini
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('laporan.masuk') }}"
+                        class="{{ request()->routeIs('laporan.masuk') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-import"></i> Barang Masuk
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('laporan.keluar') }}"
+                        class="{{ request()->routeIs('laporan.keluar') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-export"></i> Barang Keluar
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('laporan.rekap') }}"
+                        class="{{ request()->routeIs('laporan.rekap') ? 'active' : '' }}">
+                        <i class="fa-solid fa-folder-open"></i> Rekap Pekerjaan
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('laporan.statistik') }}"
+                        class="{{ request()->routeIs('laporan.statistik') ? 'active' : '' }}">
+                        <i class="fa-solid fa-chart-line"></i> Statistik
+                    </a>
+                </li>
+            </ul>
+        @endif
 
         <div class="sidebar-footer">
             <div class="sidebar-user">
@@ -1192,12 +1198,12 @@
                 </div>
                 <div class="sidebar-user-info">
                     <strong>{{ auth()->user()->name }}</strong>
-                    <span>Admin Gudang</span>
+                    <span>{{ auth()->user()->role_label }}</span>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="btn btn-secondary"
+                <button type="submit" class="btn btn-secondary"f
                     style="width:100%; justify-content:center; font-size:12.5px;">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
