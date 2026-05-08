@@ -112,6 +112,30 @@
             border-radius: 4px;
         }
 
+        /* Tombol Close Sidebar */
+        .sidebar-close-btn {
+            display: none;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+
+        .sidebar-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         /* Brand */
         .sidebar-brand {
             padding: 18px 18px 14px;
@@ -535,7 +559,7 @@
         }
 
         .stat-val {
-            font-size: 1.9rem;
+            font-size: 42px;
             font-weight: 800;
             line-height: 1;
             color: var(--text);
@@ -998,10 +1022,16 @@
             .sidebar {
                 transform: translateX(-100%);
                 box-shadow: var(--shadow-lg);
+                position: fixed;
             }
 
             .sidebar.open {
                 transform: translateX(0);
+            }
+
+            /* Tampilkan tombol close di mobile */
+            .sidebar-close-btn {
+                display: flex;
             }
 
             .main-wrap {
@@ -1041,7 +1071,7 @@
             }
 
             .stat-val {
-                font-size: 1.55rem;
+                font-size: 32px;
             }
 
             .stat-lbl {
@@ -1088,7 +1118,7 @@
             }
 
             .stat-val {
-                font-size: 1.35rem;
+                font-size: 26px;
             }
         }
     </style>
@@ -1101,6 +1131,11 @@
 
     <!-- ═══════════ SIDEBAR ═══════════ -->
     <aside class="sidebar" id="sidebar">
+        <!-- Tombol Close untuk mobile -->
+        <button class="sidebar-close-btn" onclick="closeSidebar()" aria-label="Tutup Menu">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
         <div class="sidebar-brand">
             <div class="sidebar-brand-icon">
                 <i class="fa-solid fa-warehouse"></i>
@@ -1189,7 +1224,6 @@
                     </a>
                 </li>
                 <li>
-                    {{-- Perbaikan: Menu Pengguna dengan route yang tepat --}}
                     <a href="{{ route('pengguna.index') }}"
                         class="{{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
                         <i class="fa-solid fa-users"></i> Pengguna
@@ -1210,7 +1244,7 @@
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="btn btn-secondary"f
+                <button type="submit" class="btn btn-secondary"
                     style="width:100%; justify-content:center; font-size:12.5px;">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
