@@ -4,8 +4,8 @@
 @push('styles')
     <style>
         /* ─────────────────────────────
-       GRID
-    ───────────────────────────── */
+           GRID
+        ───────────────────────────── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -20,8 +20,8 @@
         }
 
         /* ─────────────────────────────
-       CARD
-    ───────────────────────────── */
+           CARD
+        ───────────────────────────── */
         .card {
             border-radius: 18px;
             overflow: hidden;
@@ -44,8 +44,8 @@
         }
 
         /* ─────────────────────────────
-       STAT CARD
-    ───────────────────────────── */
+           STAT CARD
+        ───────────────────────────── */
         .stat-card {
             border-radius: 18px;
             padding: 16px;
@@ -106,8 +106,8 @@
         }
 
         /* ─────────────────────────────
-       CHART
-    ───────────────────────────── */
+           CHART
+        ───────────────────────────── */
         .chart-container {
             position: relative;
             width: 100%;
@@ -165,8 +165,8 @@
         }
 
         /* ─────────────────────────────
-       DONUT
-    ───────────────────────────── */
+           DONUT
+        ───────────────────────────── */
         .kategori-section {
             display: flex;
             align-items: center;
@@ -240,8 +240,8 @@
         }
 
         /* ─────────────────────────────
-       TABLE
-    ───────────────────────────── */
+           TABLE
+        ───────────────────────────── */
         .table-wrap {
             width: 100%;
             overflow-x: auto;
@@ -253,8 +253,8 @@
         }
 
         /* ─────────────────────────────
-       TABLET
-    ───────────────────────────── */
+           TABLET
+        ───────────────────────────── */
         @media (max-width:768px) {
 
             .grid-2 {
@@ -287,8 +287,8 @@
         }
 
         /* ─────────────────────────────
-       MOBILE
-    ───────────────────────────── */
+           MOBILE
+        ───────────────────────────── */
         @media (max-width:480px) {
 
             .stats-grid {
@@ -582,9 +582,9 @@
                 <i class="fa-solid fa-helmet-safety" style="color: var(--primary-mid);"></i>
                 Pekerjaan Aktif
             </h3>
-            <a href="{{ route('pekerjaan.create') }}" class="btn btn-sm btn-dark">
-                <i class="fa-solid fa-plus"></i> Pekerjaan Baru
-            </a>
+            @if (auth()->user()->isAdmin())
+                <a href="{{ route('pekerjaan.create') }}" class="btn btn-primary">Buat Pekerjaan</a>
+            @endif
         </div>
         @if ($pekerjaanAktif->isEmpty())
             <div class="empty-state">
