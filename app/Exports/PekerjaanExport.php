@@ -18,7 +18,6 @@ class PekerjaanExport implements WithEvents, WithTitle
     protected ?string $search;
     protected ?string $status;
 
-    // KOLUMNYA DITAMBAH
     const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
     const LAST_COL = 'I';
 
@@ -30,10 +29,10 @@ class PekerjaanExport implements WithEvents, WithTitle
         ?string $status = null
     ) {
         $this->pekerjaan = $pekerjaan;
-        $this->dari      = $dari;
-        $this->sampai    = $sampai;
-        $this->search    = $search;
-        $this->status    = $status;
+        $this->dari = $dari;
+        $this->sampai = $sampai;
+        $this->search = $search;
+        $this->status = $status;
     }
 
     public function title(): string
@@ -44,11 +43,11 @@ class PekerjaanExport implements WithEvents, WithTitle
     private function getStatusLabel(): string
     {
         if ($this->status === 'aktif') {
-            return 'Aktif';
+            return 'AKTIF';
         }
 
         if ($this->status === 'selesai') {
-            return 'Selesai';
+            return 'SELESAI';
         }
 
         return 'SEMUA';
@@ -73,24 +72,23 @@ class PekerjaanExport implements WithEvents, WithTitle
 
     public function registerEvents(): array
     {
-        $dari        = $this->dari
+        $dari = $this->dari
             ? date('d-m-Y', strtotime($this->dari))
             : '-';
 
-        $sampai      = $this->sampai
+        $sampai = $this->sampai
             ? date('d-m-Y', strtotime($this->sampai))
             : '-';
 
         $statusLabel = $this->getStatusLabel();
 
-        $search      = $this->search ?? '-';
+        $search = $this->search ?? '-';
 
-        $pekerjaan   = $this->pekerjaan;
+        $pekerjaan = $this->pekerjaan;
 
-        $lastCol     = self::LAST_COL;
+        $lastCol = self::LAST_COL;
 
         return [
-
             AfterSheet::class => function (AfterSheet $event)
             use (
                 $dari,
@@ -105,9 +103,11 @@ class PekerjaanExport implements WithEvents, WithTitle
 
                 $row = 1;
 
-                // =====================================================
-                // JUDUL
-                // =====================================================
+                /*
+                |--------------------------------------------------------------------------
+                | TITLE
+                |--------------------------------------------------------------------------
+                */
 
                 $sheet->setCellValue(
                     "A{$row}",
@@ -119,55 +119,73 @@ class PekerjaanExport implements WithEvents, WithTitle
                 $sheet->getStyle("A{$row}")->applyFromArray([
                     'font' => [
                         'bold' => true,
-                        'size' => 14,
-                        'name' => 'Arial',
+                        'size' => 16,
                     ],
+
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
                     ],
                 ]);
 
-                $row++;
-
-                // =====================================================
-                // FILTER INFO
-                // =====================================================
-
-                $row++;
-
-                $sheet->setCellValue(
-                    "A{$row}",
-                    "Periode: {$dari} s/d {$sampai}"
-                );
-
-                $sheet->mergeCells("A{$row}:{$lastCol}{$row}");
-
-                $row++;
-
-                $sheet->setCellValue(
-                    "A{$row}",
-                    "Status: {$statusLabel} | Search: {$search}"
-                );
-
-                $sheet->mergeCells("A{$row}:{$lastCol}{$row}");
-
-                $sheet->getStyle("A{$row}:{$lastCol}{$row}")
-                    ->getFont()
-                    ->setBold(true);
+                $sheet->getRowDimension($row)->setRowHeight(28);
 
                 $row += 2;
 
-                // =====================================================
-                // GRAND TOTAL
-                // =====================================================
+                /*
+                |--------------------------------------------------------------------------
+                | INFO FILTER
+                |--------------------------------------------------------------------------
+                */
+
+                $sheet->setCellValue(
+                    "A{$row}",
+                    "Periode : {$dari} s/d {$sampai}"
+                );
+
+                $sheet->mergeCells("A{$row}:{$lastCol}{$row}");
+
+                $row++;
+
+                $sheet->setCellValue(
+                    "A{$row}",
+                    "Status : {$statusLabel}"
+                );
+
+                $sheet->mergeCells("A{$row}:{$lastCol}{$row}");
+
+                $row++;
+
+                $sheet->setCellValue(
+                    "A{$row}",
+                    "Search : {$search}"
+                );
+
+                $sheet->mergeCells("A{$row}:{$lastCol}{$row}");
+
+                $sheet->getStyle("A3:{$lastCol}5")->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                        'size' => 10,
+                    ],
+                ]);
+
+                $row += 2;
+
+                /*
+                |--------------------------------------------------------------------------
+                | GRAND TOTAL
+                |--------------------------------------------------------------------------
+                */
 
                 $grandQty = 0;
                 $grandHpp = 0;
-                $grandTransaksi = 0;
 
-                // =====================================================
-                // LOOP PEKERJAAN
-                // =====================================================
+                /*
+                |--------------------------------------------------------------------------
+                | LOOP PEKERJAAN
+                |--------------------------------------------------------------------------
+                */
 
                 foreach ($pekerjaan as $p) {
 
@@ -177,45 +195,103 @@ class PekerjaanExport implements WithEvents, WithTitle
                     $totalHppPekerjaan =
                         $p->transaksi->sum('total_hpp');
 
-                    $totalTransaksiPekerjaan =
-                        $p->transaksi->count();
-
                     $grandQty += $totalQtyPekerjaan;
                     $grandHpp += $totalHppPekerjaan;
-                    $grandTransaksi += $totalTransaksiPekerjaan;
 
-                    // =================================================
-                    // HEADER PEKERJAAN
-                    // =================================================
+                    /*
+                    |--------------------------------------------------------------------------
+                    | HEADER PEKERJAAN
+                    |--------------------------------------------------------------------------
+                    */
 
                     $sheet->setCellValue(
                         "A{$row}",
-                        $p->kode_pekerjaan
+                        'Kode'
                     );
 
                     $sheet->setCellValue(
                         "B{$row}",
-                        $p->nama_pekerjaan
+                        $p->kode_pekerjaan
                     );
 
                     $sheet->setCellValue(
                         "C{$row}",
-                        strtoupper($p->status)
+                        'Pekerjaan'
                     );
 
                     $sheet->setCellValue(
                         "D{$row}",
-                        $p->nama_peminjam
+                        $p->nama_pekerjaan
                     );
 
                     $sheet->setCellValue(
                         "E{$row}",
-                        $p->lokasi ?? '-'
+                        'PIC'
                     );
 
                     $sheet->setCellValue(
                         "F{$row}",
-                        'Mulai: ' .
+                        $p->nama_peminjam
+                    );
+
+                    $sheet->mergeCells("F{$row}:{$lastCol}{$row}");
+
+                    $sheet->getStyle("A{$row}:{$lastCol}{$row}")
+                        ->applyFromArray([
+
+                            'font' => [
+                                'bold' => true,
+                                'color' => [
+                                    'argb' => 'FF1E293B',
+                                ],
+                            ],
+
+                            'fill' => [
+                                'fillType' => Fill::FILL_SOLID,
+                                'startColor' => [
+                                    'argb' => 'FFE2E8F0',
+                                ],
+                            ],
+
+                            'borders' => [
+                                'allBorders' => [
+                                    'borderStyle' => Border::BORDER_THIN,
+                                    'color' => [
+                                        'argb' => 'FFCBD5E1',
+                                    ],
+                                ],
+                            ],
+                        ]);
+
+                    $row++;
+
+                    $sheet->setCellValue(
+                        "A{$row}",
+                        'Status'
+                    );
+
+                    $sheet->setCellValue(
+                        "B{$row}",
+                        strtoupper($p->status)
+                    );
+
+                    $sheet->setCellValue(
+                        "C{$row}",
+                        'Lokasi'
+                    );
+
+                    $sheet->setCellValue(
+                        "D{$row}",
+                        $p->lokasi ?? '-'
+                    );
+
+                    $sheet->setCellValue(
+                        "E{$row}",
+                        'Mulai'
+                    );
+
+                    $sheet->setCellValue(
+                        "F{$row}",
                         optional($p->tanggal_mulai)->format('d-m-Y')
                     );
 
@@ -223,88 +299,31 @@ class PekerjaanExport implements WithEvents, WithTitle
 
                     $sheet->getStyle("A{$row}:{$lastCol}{$row}")
                         ->applyFromArray([
-                            'font' => [
-                                'bold' => true,
-                                'color' => ['argb' => 'FF1E3A5F'],
-                            ],
 
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => [
-                                    'argb' => 'FFD6E4F0'
+                                    'argb' => 'FFF8FAFC',
                                 ],
                             ],
 
                             'borders' => [
                                 'allBorders' => [
                                     'borderStyle' => Border::BORDER_THIN,
+                                    'color' => [
+                                        'argb' => 'FFE2E8F0',
+                                    ],
                                 ],
                             ],
                         ]);
 
-                    $row++;
+                    $row += 2;
 
-                    // =================================================
-                    // SUMMARY PEKERJAAN
-                    // =================================================
-
-                    $sheet->setCellValue(
-                        "A{$row}",
-                        "Total Transaksi"
-                    );
-
-                    $sheet->setCellValue(
-                        "B{$row}",
-                        $totalTransaksiPekerjaan
-                    );
-
-                    $sheet->setCellValue(
-                        "C{$row}",
-                        "Total Qty"
-                    );
-
-                    $sheet->setCellValue(
-                        "D{$row}",
-                        $totalQtyPekerjaan
-                    );
-
-                    $sheet->setCellValue(
-                        "E{$row}",
-                        "Total HPP"
-                    );
-
-                    $sheet->setCellValue(
-                        "F{$row}",
-                        $totalHppPekerjaan
-                    );
-
-                    $sheet->mergeCells("F{$row}:{$lastCol}{$row}");
-
-                    $sheet->getStyle("A{$row}:{$lastCol}{$row}")
-                        ->applyFromArray([
-                            'font' => [
-                                'bold' => true,
-                            ],
-
-                            'fill' => [
-                                'fillType' => Fill::FILL_SOLID,
-                                'startColor' => [
-                                    'argb' => 'FFF8FAFC'
-                                ],
-                            ],
-                        ]);
-
-                    $sheet->getStyle("F{$row}")
-                        ->getNumberFormat()
-                        ->setFormatCode(
-                            '"Rp" #,##0'
-                        );
-
-                    $row++;
-
-                    // =================================================
-                    // HEADER TABLE
-                    // =================================================
+                    /*
+                    |--------------------------------------------------------------------------
+                    | HEADER TABLE
+                    |--------------------------------------------------------------------------
+                    */
 
                     $headers = [
                         'No',
@@ -331,15 +350,60 @@ class PekerjaanExport implements WithEvents, WithTitle
 
                             'font' => [
                                 'bold' => true,
-                                'color' => ['argb' => 'FFFFFFFF'],
+                                'color' => [
+                                    'argb' => 'FFFFFFFF',
+                                ],
                             ],
 
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => [
-                                    'argb' => 'FF2C5F8A'
+                                    'argb' => 'FF2C5F8A',
                                 ],
                             ],
+
+                            'alignment' => [
+                                'horizontal' =>
+                                    Alignment::HORIZONTAL_CENTER,
+                                'vertical' =>
+                                    Alignment::VERTICAL_CENTER,
+                            ],
+
+                            'borders' => [
+                                'allBorders' => [
+                                    'borderStyle' =>
+                                        Border::BORDER_THIN,
+                                    'color' => [
+                                        'argb' => 'FFAAAAAA',
+                                    ],
+                                ],
+                            ],
+                        ]);
+
+                    $sheet->getRowDimension($row)->setRowHeight(22);
+
+                    $row++;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | DATA TRANSAKSI
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if ($p->transaksi->isEmpty()) {
+
+                        $sheet->setCellValue(
+                            "A{$row}",
+                            'Belum ada transaksi'
+                        );
+
+                        $sheet->mergeCells(
+                            "A{$row}:{$lastCol}{$row}"
+                        );
+
+                        $sheet->getStyle(
+                            "A{$row}:{$lastCol}{$row}"
+                        )->applyFromArray([
 
                             'alignment' => [
                                 'horizontal' =>
@@ -354,25 +418,7 @@ class PekerjaanExport implements WithEvents, WithTitle
                             ],
                         ]);
 
-                    $row++;
-
-                    // =================================================
-                    // DATA BARANG
-                    // =================================================
-
-                    if ($p->transaksi->isEmpty()) {
-
-                        $sheet->setCellValue(
-                            "A{$row}",
-                            'Belum ada transaksi'
-                        );
-
-                        $sheet->mergeCells(
-                            "A{$row}:{$lastCol}{$row}"
-                        );
-
                         $row++;
-
                     } else {
 
                         $no = 1;
@@ -380,23 +426,8 @@ class PekerjaanExport implements WithEvents, WithTitle
                         foreach ($p->transaksi as $t) {
 
                             $statusBarang = $t->status_pinjam
-                                ? $t->status_label
-                                : 'Keluar Permanen';
-
-                            if (
-                                $t->status_pinjam &&
-                                $t->tgl_kembali_aktual
-                            ) {
-                                $statusBarang .=
-                                    ' (' .
-                                    date(
-                                        'd-m-Y',
-                                        strtotime(
-                                            $t->tgl_kembali_aktual
-                                        )
-                                    ) .
-                                    ')';
-                            }
+                                ? strtoupper($t->status_label)
+                                : 'PERMANEN';
 
                             $sheet->setCellValue(
                                 "A{$row}",
@@ -447,36 +478,32 @@ class PekerjaanExport implements WithEvents, WithTitle
                                 $statusBarang
                             );
 
-                            // FORMAT RUPIAH
-                            $sheet->getStyle("F{$row}:G{$row}")
-                                ->getNumberFormat()
+                            $sheet->getStyle(
+                                "F{$row}:G{$row}"
+                            )->getNumberFormat()
                                 ->setFormatCode(
                                     '"Rp" #,##0'
                                 );
-
-                            // STYLE
-                            $bgColor = ($no % 2 === 0)
-                                ? 'FFF8FAFC'
-                                : 'FFFFFFFF';
 
                             $sheet->getStyle(
                                 "A{$row}:{$lastCol}{$row}"
                             )->applyFromArray([
 
-                                'fill' => [
-                                    'fillType' =>
-                                        Fill::FILL_SOLID,
-
-                                    'startColor' => [
-                                        'argb' => $bgColor
-                                    ],
-                                ],
-
                                 'borders' => [
                                     'allBorders' => [
                                         'borderStyle' =>
                                             Border::BORDER_THIN,
+                                        'color' => [
+                                            'argb' => 'FFDDDDDD',
+                                        ],
                                     ],
+                                ],
+
+                                'alignment' => [
+                                    'horizontal' =>
+                                        Alignment::HORIZONTAL_CENTER,
+                                    'vertical' =>
+                                        Alignment::VERTICAL_CENTER,
                                 ],
                             ]);
 
@@ -496,9 +523,11 @@ class PekerjaanExport implements WithEvents, WithTitle
                             $no++;
                         }
 
-                        // =============================================
-                        // FOOTER TOTAL PEKERJAAN
-                        // =============================================
+                        /*
+                        |--------------------------------------------------------------------------
+                        | TOTAL PEKERJAAN
+                        |--------------------------------------------------------------------------
+                        */
 
                         $sheet->setCellValue(
                             "A{$row}",
@@ -539,7 +568,7 @@ class PekerjaanExport implements WithEvents, WithTitle
                                     Fill::FILL_SOLID,
 
                                 'startColor' => [
-                                    'argb' => 'FFE2E8F0'
+                                    'argb' => 'FFF1F5F9',
                                 ],
                             ],
 
@@ -551,15 +580,15 @@ class PekerjaanExport implements WithEvents, WithTitle
                             ],
                         ]);
 
-                        $row++;
+                        $row += 2;
                     }
-
-                    $row++;
                 }
 
-                // =====================================================
-                // GRAND TOTAL AKHIR
-                // =====================================================
+                /*
+                |--------------------------------------------------------------------------
+                | GRAND TOTAL
+                |--------------------------------------------------------------------------
+                */
 
                 $sheet->setCellValue(
                     "A{$row}",
@@ -578,8 +607,9 @@ class PekerjaanExport implements WithEvents, WithTitle
                     $grandHpp
                 );
 
-                $sheet->getStyle("G{$row}")
-                    ->getNumberFormat()
+                $sheet->getStyle(
+                    "G{$row}"
+                )->getNumberFormat()
                     ->setFormatCode(
                         '"Rp" #,##0'
                     );
@@ -594,11 +624,9 @@ class PekerjaanExport implements WithEvents, WithTitle
                     ],
 
                     'fill' => [
-                        'fillType' =>
-                            Fill::FILL_SOLID,
-
+                        'fillType' => Fill::FILL_SOLID,
                         'startColor' => [
-                            'argb' => 'FFBBF7D0'
+                            'argb' => 'FFE2E8F0',
                         ],
                     ],
 
@@ -610,9 +638,11 @@ class PekerjaanExport implements WithEvents, WithTitle
                     ],
                 ]);
 
-                // =====================================================
-                // AUTO WIDTH
-                // =====================================================
+                /*
+                |--------------------------------------------------------------------------
+                | AUTO WIDTH
+                |--------------------------------------------------------------------------
+                */
 
                 foreach (self::COLS as $col) {
 
@@ -620,12 +650,14 @@ class PekerjaanExport implements WithEvents, WithTitle
                         ->setAutoSize(true);
                 }
 
-                // =====================================================
-                // DEFAULT STYLE
-                // =====================================================
+                /*
+                |--------------------------------------------------------------------------
+                | DEFAULT HEIGHT
+                |--------------------------------------------------------------------------
+                */
 
                 $sheet->getDefaultRowDimension()
-                    ->setRowHeight(18);
+                    ->setRowHeight(20);
             },
         ];
     }
