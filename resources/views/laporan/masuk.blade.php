@@ -39,16 +39,6 @@
                     <a href="{{ route('laporan.masuk') }}" class="btn btn-secondary">Reset</a>
                 @endif
             </form>
-            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
-                <div style="background: #f0fdf4; padding: 10px 16px; border-radius: 8px; border: 1px solid #86efac;">
-                    <div style="font-size: 11px; color: var(--muted); font-weight: 600;">TOTAL TRANSAKSI</div>
-                    <div style="font-size: 20px; font-weight: 800; color: var(--success);">{{ $totalItems }}</div>
-                </div>
-                <div style="background: #eff6ff; padding: 10px 16px; border-radius: 8px; border: 1px solid #93c5fd;">
-                    <div style="font-size: 11px; color: var(--muted); font-weight: 600;">TOTAL JUMLAH</div>
-                    <div style="font-size: 20px; font-weight: 800; color: var(--primary);">{{ $totalJumlah }}</div>
-                </div>
-            </div>
         </div>
         <div class="table-wrap">
             <table>
@@ -59,6 +49,8 @@
                         <th>Barang</th>
                         <th>Kategori</th>
                         <th>Jumlah</th>
+                        <th>Harga Satuan</th>
+                        <th>Total Nominal</th>
                         <th>Stok Sebelum</th>
                         <th>Stok Sesudah</th>
                         <th>Sumber</th>
@@ -72,25 +64,58 @@
                             </td>
                             <td>{{ $d->tanggal->format('d/m/Y') }}</td>
                             <td style="font-weight: 600;">{{ $d->barang->nama_barang }}</td>
-                            <td><span
-                                    class="badge badge-{{ $d->barang->kategori_badge }}">{{ strtoupper($d->barang->kategori) }}</span>
+                            <td>
+                                <span class="badge badge-{{ $d->barang->kategori_badge ?? 'secondary' }}">
+                                    {{ strtoupper($d->barang->kategori) }}
+                                </span>
                             </td>
                             <td><span style="color: var(--success); font-weight: 700;">+{{ $d->jumlah }}</span></td>
+                            <td>
+                                <span style="font-weight: 600;">
+                                    Rp {{ number_format($d->harga_satuan, 0, ',', '.') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="color: var(--primary); font-weight: 700;">
+                                    Rp {{ number_format($d->jumlah * $d->harga_satuan, 0, ',', '.') }}
+                                </span>
+                            </td>
                             <td style="color: var(--muted);">{{ $d->stok_sebelum }}</td>
                             <td style="font-weight: 600;">{{ $d->stok_sesudah }}</td>
                             <td style="color: var(--muted);">{{ $d->sumber ?? '-' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
-                                <div class="empty-state"><i class="fa-solid fa-file-import"></i>
+                            <td colspan="10">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-file-import"></i>
                                     <p>Tidak ada data pada periode ini</p>
                                 </div>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
+                @if ($data->count() > 0)
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-right"><strong>GRAND TOTAL</strong></td>
+                            <td><strong>{{ $totalJumlah }}</strong></td>
+                            <td colspan="2"><strong>Rp {{ number_format($totalNominal, 0, ',', '.') }}</strong></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                @endif
             </table>
+        </div>
+        <div class="card-body">
+            <small style="color: var(--muted);">
+                Periode: {{ request('dari', now()->subDays(30)->format('d/m/Y')) }} -
+                {{ request('sampai', now()->format('d/m/Y')) }}
+                @if (request('kategori'))
+                    | Kategori:
+                    {{ request('kategori') == 'cons' ? 'Consumable' : (request('kategori') == 'material' ? 'Material' : 'Tools') }}
+                @endif
+            </small>
         </div>
     </div>
 @endsection

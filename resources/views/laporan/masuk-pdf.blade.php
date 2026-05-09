@@ -1,122 +1,257 @@
-<!DOCTYPE html>
-<html>
+@extends('layouts.pdf')
 
-<head>
-    <title>Laporan Barang Masuk</title>
-    <style>
-        @page {
-            size: A4 landscape;
-            margin: 20px;
-        }
+@section('title', 'Laporan Barang Masuk')
 
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-        }
+@section('heading', 'LAPORAN BARANG MASUK')
 
-        h2 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
+@php
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    $dari = request('dari') ?? \Carbon\Carbon::now()->subDays(30)->format('Y-m-d');
 
-        table,
-        th,
-        td {
-            border: 1px solid black;
-        }
+    $sampai = request('sampai') ?? \Carbon\Carbon::now()->format('Y-m-d');
 
-        th {
-            background: #f2f2f2;
-        }
+    $kategori = request('kategori');
 
-        th,
-        td {
-            padding: 5px;
-            text-align: center;
-        }
+    if ($kategori === 'cons') {
+        $kategoriLabel = 'Consumable';
+    } elseif ($kategori === 'material') {
+        $kategoriLabel = 'Material';
+    } elseif ($kategori === 'tools') {
+        $kategoriLabel = 'Tools';
+    } elseif ($kategori) {
+        $kategoriLabel = strtoupper($kategori);
+    } else {
+        $kategoriLabel = 'SEMUA';
+    }
 
-        td.text-left {
-            text-align: left;
-        }
-    </style>
-</head>
+    $totalJumlah = $data->sum('jumlah');
 
-<body>
+    $totalNominal = $data->sum(function ($item) {
+        return $item->jumlah * $item->harga_satuan;
+    });
 
-    <h2>LAPORAN BARANG MASUK</h2>
+@endphp
 
-    <!-- INFO FILTER -->
-    @php
-        $dari = request('dari') ?? \Carbon\Carbon::now()->subDays(30)->format('Y-m-d');
-        $sampai = request('sampai') ?? \Carbon\Carbon::now()->format('Y-m-d');
-        $kategori = request('kategori');
-        if ($kategori === 'cons') {
-            $kategoriLabel = 'Consumable';
-        } elseif ($kategori === 'material') {
-            $kategoriLabel = 'Material';
-        } elseif ($kategori === 'tools') {
-            $kategoriLabel = 'Tools';
-        } elseif ($kategori) {
-            $kategoriLabel = strtoupper($kategori);
-        } else {
-            $kategoriLabel = 'SEMUA';
-        }
-    @endphp
+@section('info-bar')
 
-    <div style="font-size: 12px; margin-bottom: 10px;">
-        <div>
-            <strong>Periode:</strong>
-            {{ date('d-m-Y', strtotime($dari)) }}
-            s/d
-            {{ date('d-m-Y', strtotime($sampai)) }}
-        </div>
+    <div>
 
-        <div>
-            <strong>Kategori:</strong>
-            {{ $kategoriLabel }}
-        </div>
+        <strong>Periode:</strong>
+
+        {{ date('d-m-Y', strtotime($dari)) }}
+
+        s/d
+
+        {{ date('d-m-Y', strtotime($sampai)) }}
+
     </div>
-    <!-- TABEL -->
+
+    <div>
+
+        <strong>Kategori:</strong>
+
+        {{ $kategoriLabel }}
+
+    </div>
+
+    <div>
+
+        <strong>Total Data:</strong>
+
+        {{ $data->count() }} transaksi
+
+    </div>
+
+@endsection
+
+@section('content')
+
     <table>
+
         <thead>
+
             <tr>
-                <th>No</th>
-                <th>No Transaksi</th>
-                <th>Tanggal</th>
-                <th>Barang</th>
-                <th>Kategori</th>
-                <th>Jumlah</th>
-                <th>Stok Sebelum</th>
-                <th>Stok Sesudah</th>
-                <th>Sumber</th>
+
+                <th style="width: 35px;">
+                    No
+                </th>
+
+                <th style="width: 120px;">
+                    No Transaksi
+                </th>
+
+                <th style="width: 80px;">
+                    Tanggal
+                </th>
+
+                <th>
+                    Barang
+                </th>
+
+                <th style="width: 80px;">
+                    Kategori
+                </th>
+
+                <th style="width: 60px;">
+                    Jumlah
+                </th>
+
+                <th style="width: 100px;">
+                    Harga Satuan
+                </th>
+
+                <th style="width: 120px;">
+                    Total Nominal
+                </th>
+
+                <th style="width: 80px;">
+                    Stok Sebelum
+                </th>
+
+                <th style="width: 80px;">
+                    Stok Sesudah
+                </th>
+
+                <th style="width: 140px;">
+                    Sumber
+                </th>
+
             </tr>
+
         </thead>
+
         <tbody>
-            @forelse ($data as $i => $item)
+
+            @forelse($data as $i => $d)
                 <tr>
-                    <td>{{ $i + 1 }}</td>
-                    <td>{{ $item->no_transaksi ?? '-' }}</td>
-                    <td>{{ date('d-m-Y', strtotime($item->tanggal)) }}</td>
-                    <td class="text-left">{{ $item->barang->nama_barang ?? '-' }}</td>
-                    <td>{{ strtoupper($item->barang->kategori ?? '-') }}</td>
-                    <td>{{ $item->jumlah }}</td>
-                    <td>{{ $item->stok_sebelum }}</td>
-                    <td>{{ $item->stok_sesudah }}</td>
-                    <td class="text-left">{{ $item->sumber ?? '-' }}</td>
+
+                    <td>
+                        {{ $i + 1 }}
+                    </td>
+
+                    <td>
+
+                        {{ $d->no_transaksi ?? '-' }}
+
+                    </td>
+
+                    <td>
+
+                        {{ $d->tanggal->format('d/m/Y') }}
+
+                    </td>
+
+                    <td class="text-left">
+
+                        {{ $d->barang->nama_barang }}
+
+                    </td>
+
+                    <td>
+
+                        {{ strtoupper($d->barang->kategori) }}
+
+                    </td>
+
+                    <td class="bold">
+
+                        {{ number_format($d->jumlah) }}
+
+                    </td>
+
+                    <td class="text-right">
+
+                        Rp
+
+                        {{ number_format($d->harga_satuan, 0, ',', '.') }}
+
+                    </td>
+
+                    <td class="text-right bold">
+
+                        Rp
+
+                        {{ number_format($d->jumlah * $d->harga_satuan, 0, ',', '.') }}
+
+                    </td>
+
+                    <td>
+
+                        {{ number_format($d->stok_sebelum) }}
+
+                    </td>
+
+                    <td class="bold">
+
+                        {{ number_format($d->stok_sesudah) }}
+
+                    </td>
+
+                    <td class="text-left">
+
+                        {{ $d->sumber ?? '-' }}
+
+                    </td>
+
                 </tr>
+
             @empty
+
                 <tr>
-                    <td colspan="9">Tidak ada data</td>
+
+                    <td colspan="11">
+
+                        <div
+                            style="
+                        padding: 20px;
+                        text-align: center;
+                    ">
+
+                            Tidak ada data pada periode ini
+
+                        </div>
+
+                    </td>
+
                 </tr>
             @endforelse
+
         </tbody>
+
+        @if ($data->count() > 0)
+            <tfoot>
+
+                <tr style="background: #f9f9f9;">
+
+                    <td colspan="5" class="text-right bold">
+
+                        GRAND TOTAL
+
+                    </td>
+
+                    <td class="bold">
+
+                        {{ number_format($totalJumlah) }}
+
+                    </td>
+
+                    <td></td>
+
+                    <td class="text-right bold">
+
+                        Rp
+
+                        {{ number_format($totalNominal, 0, ',', '.') }}
+
+                    </td>
+
+                    <td colspan="3"></td>
+
+                </tr>
+
+            </tfoot>
+        @endif
+
     </table>
 
-</body>
-
-</html>
+@endsection

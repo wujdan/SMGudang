@@ -49,7 +49,7 @@
                     </option>
                 </select>
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Filter</button>
-                @if (request()->anyFilled(['dari', 'sampai', 'kategori']))
+                @if (request()->anyFilled(['dari', 'sampai', 'kategori', 'status', 'nama_barang']))
                     <a href="{{ route('laporan.keluar') }}" class="btn btn-secondary">Reset</a>
                 @endif
             </form>
@@ -65,6 +65,8 @@
                         <th>Barang</th>
                         <th>Kategori</th>
                         <th>Jumlah</th>
+                        <th>Harga Satuan</th>
+                        <th>Total HPP</th>
                         <th>Tipe</th>
                         <th>Rencana Kembali</th>
                         <th>Status</th>
@@ -74,21 +76,48 @@
                     @forelse($data as $d)
                         <tr>
                             <td>
-                                <code
-                                    style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ $d->no_transaksi }}</code>
+                                <code style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                                    {{ $d->no_transaksi }}
+                                </code>
                             </td>
                             <td>{{ $d->tanggal_keluar->format('d/m/Y') }}</td>
                             <td style="font-size: 12px; font-weight: 600;">{{ $d->pekerjaan->nama_pekerjaan }}</td>
                             <td style="font-size: 12px;">{{ $d->pekerjaan->nama_peminjam }}</td>
                             <td style="font-weight: 600;">{{ $d->barang->nama_barang }}</td>
-                            <td><span
-                                    class="badge badge-{{ $d->barang->kategori_badge }}">{{ strtoupper($d->barang->kategori) }}</span>
+                            <td>
+                                <span class="badge badge-{{ $d->barang->kategori_badge ?? 'secondary' }}">
+                                    {{ strtoupper($d->barang->kategori) }}
+                                </span>
                             </td>
                             <td><span style="color: var(--danger); font-weight: 700;">-{{ $d->jumlah }}</span></td>
+
+                            {{-- Harga Satuan --}}
+                            <td>
+                                @if ($d->barang->kategori === 'tools')
+                                    <span style="color: var(--muted); font-style: italic;">-</span>
+                                @else
+                                    <span style="font-weight: 600;">
+                                        Rp {{ number_format($d->barang->prices ?? ($d->barang->harga ?? 0), 0, ',', '.') }}
+                                    </span>
+                                @endif
+                            </td>
+
+                            {{-- Total HPP --}}
+                            <td>
+                                @if ($d->barang->kategori === 'tools')
+                                    <span style="color: var(--muted); font-style: italic;">-</span>
+                                @else
+                                    <span style="color: var(--primary); font-weight: 700;">
+                                        Rp {{ number_format($d->total_hpp, 0, ',', '.') }}
+                                    </span>
+                                @endif
+                            </td>
+
                             <td>
                                 @if ($d->status_pinjam)
                                     <span class="badge badge-warning">PINJAM</span>
-                                @else<span class="badge badge-secondary">PERMANEN</span>
+                                @else
+                                    <span class="badge badge-secondary">PERMANEN</span>
                                 @endif
                             </td>
                             <td style="font-size: 12px; color: {{ $d->isTerlambat() ? 'var(--danger)' : 'inherit' }};">
@@ -96,7 +125,6 @@
                             </td>
                             <td>
                                 <span class="badge {{ $d->status_badge }}">{{ $d->status_label }}</span>
-                                {{-- Update Terakhir dipindah ke sini --}}
                                 <div style="font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap;">
                                     <i class="fa-solid fa-clock-rotate-left" style="font-size: 9px;"></i>
                                     {{ $d->updated_at->format('d/m/Y H:i') }}
@@ -105,15 +133,40 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10">
-                                <div class="empty-state"><i class="fa-solid fa-file-export"></i>
+                            <td colspan="12">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-file-export"></i>
                                     <p>Tidak ada data</p>
                                 </div>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
+                @if ($data->count() > 0)
+                    <tfoot>
+                        <tr style="background: #f8f9fa;">
+                            <td colspan="6" class="text-right"><strong>GRAND TOTAL</strong></td>
+                            <td><strong>{{ $totalJumlah }}</strong></td>
+                            <td colspan="2"><strong>Rp {{ number_format($totalHpp, 0, ',', '.') }}</strong></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                @endif
             </table>
+        </div>
+        <div class="card-body">
+            <small style="color: var(--muted);">
+                Periode: {{ request('dari', now()->subDays(30)->format('d/m/Y')) }} -
+                {{ request('sampai', now()->format('d/m/Y')) }}
+                @if (request('kategori'))
+                    | Kategori:
+                    {{ request('kategori') == 'cons' ? 'Consumable' : (request('kategori') == 'material' ? 'Material' : 'Tools') }}
+                @endif
+                @if (request('status'))
+                    | Status:
+                    {{ request('status') == 'permanen' ? 'Permanen' : (request('status') == 'dipinjam' ? 'Dipinjam' : 'Dikembalikan') }}
+                @endif
+            </small>
         </div>
     </div>
 @endsection
