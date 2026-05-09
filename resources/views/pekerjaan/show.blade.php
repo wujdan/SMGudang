@@ -137,13 +137,15 @@
                 style="font-size: 13px; padding: 6px 14px;">
                 {{ strtoupper($pekerjaan->status) }}
             </span>
-            @if ($pekerjaan->status == 'aktif')
+            {{-- Tombol Tambah Barang hanya untuk admin/super admin --}}
+            @if ($pekerjaan->status == 'aktif' && auth()->user()->isAdmin())
                 <button onclick="document.getElementById('modal-tambah').classList.add('show')" class="btn btn-primary">
                     <i class="fa-solid fa-cart-plus"></i> Tambah Barang
                 </button>
             @endif
         </div>
     </div>
+
 
     @php
         $tools = $pekerjaan->transaksi->filter(fn($t) => $t->barang->kategori === 'tools');
@@ -176,7 +178,9 @@
                             <th>Tgl Kembali</th>
                             <th>Total Harga</th>
                             <th>Status</th>
-                            <th>Aksi</th>
+                            @if (auth()->user()->isAdmin())
+                                <th>Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -198,30 +202,23 @@
                                     @endif
                                 </td>
                                 <td>{{ $t->tgl_kembali_aktual ? $t->tgl_kembali_aktual->format('d/m/Y') : '-' }}</td>
-                                <td>
-
-                                    <span
-                                        style="
-        font-size: 12px;
-        color: var(--muted);
-        font-style: italic;
-    ">
-                                        Tidak digunakan
-                                    </span>
-
-                                </td>
+                                <td><span style="font-size: 12px; color: var(--muted); font-style: italic;">Tidak
+                                        digunakan</span></td>
                                 <td><span class="badge {{ $t->status_badge }}">{{ $t->status_label }}</span></td>
                                 <td>
-                                    @if ($t->status_pinjam === 'dipinjam')
-                                        <button
-                                            onclick="openReturnModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
-                                            class="btn btn-sm btn-success">
-                                            <i class="fa-solid fa-rotate-left"></i> Kembalikan
-                                        </button>
-                                    @else
-                                        <span style="color: var(--success); font-size: 12px;">
-                                            <i class="fa-solid fa-check"></i> Sudah Kembali
-                                        </span>
+                                    {{-- Hanya admin yang bisa melakukan aksi --}}
+                                    @if (auth()->user()->isAdmin())
+                                        @if ($t->status_pinjam === 'dipinjam')
+                                            <button
+                                                onclick="openReturnModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
+                                                class="btn btn-sm btn-success">
+                                                <i class="fa-solid fa-rotate-left"></i> Kembalikan
+                                            </button>
+                                        @else
+                                            <span style="color: var(--success); font-size: 12px;">
+                                                <i class="fa-solid fa-check"></i> Sudah Kembali
+                                            </span>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>
@@ -229,23 +226,10 @@
                     </tbody>
                 </table>
             </div>
-            {{-- Subtotal Tools --}}
             <div class="subtotal-bar">
-                <div class="subtotal-bar">
-                    <span class="label">
-                        <i class="fa-solid fa-screwdriver-wrench" style="margin-right:4px;"></i>
-
-                        Subtotal Tools
-                    </span>
-
-                    <span class="value" style="
-            color: var(--muted);
-            font-style: italic;
-        ">
-
-                        Tidak digunakan
-                    </span>
-                </div>
+                <span class="label"><i class="fa-solid fa-screwdriver-wrench" style="margin-right:4px;"></i>Subtotal
+                    Tools</span>
+                <span class="value" style="color: var(--muted); font-style: italic;">Tidak digunakan</span>
             </div>
         </div>
     @endif
@@ -266,7 +250,9 @@
                             <th>Tanggal Keluar</th>
                             <th>Total Harga</th>
                             <th>Keterangan</th>
-                            <th>Aksi</th>
+                            @if (auth()->user()->isAdmin())
+                                <th>Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -284,15 +270,15 @@
                                 </td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
                                 <td style="display: flex; gap: 6px;">
-                                    @if ($pekerjaan->status == 'aktif')
-                                        <button
-                                            onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
-                                            class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></button>
-                                        <button
-                                            onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
-                                            class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
-                                    @else
-                                        <span style="color: var(--muted); font-size: 12px;">-</span>
+                                    @if (auth()->user()->isAdmin())
+                                        @if ($pekerjaan->status == 'aktif')
+                                            <button
+                                                onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
+                                                class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></button>
+                                            <button
+                                                onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
+                                                class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>
@@ -300,7 +286,6 @@
                     </tbody>
                 </table>
             </div>
-            {{-- Subtotal Consumables --}}
             <div class="subtotal-bar">
                 <span class="label"><i class="fa-solid fa-fire" style="margin-right:4px;"></i> Subtotal Consumables</span>
                 <span class="value">Rp {{ number_format($hppCons, 0, ',', '.') }}</span>
@@ -324,7 +309,9 @@
                             <th>Tanggal Keluar</th>
                             <th>Total Harga</th>
                             <th>Keterangan</th>
-                            <th>Aksi</th>
+                            @if (auth()->user()->isAdmin())
+                                <th>Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -342,15 +329,15 @@
                                 </td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
                                 <td style="display: flex; gap: 6px;">
-                                    @if ($pekerjaan->status == 'aktif')
-                                        <button
-                                            onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
-                                            class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></button>
-                                        <button
-                                            onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
-                                            class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
-                                    @else
-                                        <span style="color: var(--muted); font-size: 12px;">-</span>
+                                    @if (auth()->user()->isAdmin())
+                                        @if ($pekerjaan->status == 'aktif')
+                                            <button
+                                                onclick="openEditModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ addslashes($t->keterangan ?? '') }}')"
+                                                class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></button>
+                                            <button
+                                                onclick="openDeleteModal({{ $t->id }}, '{{ addslashes($t->barang->nama_barang) }}', {{ $t->jumlah }}, '{{ $t->barang->satuan }}')"
+                                                class="btn btn-sm btn-danger"><i class="fa fa-trash"></i></button>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>
@@ -358,10 +345,18 @@
                     </tbody>
                 </table>
             </div>
-            {{-- Subtotal Material --}}
             <div class="subtotal-bar">
                 <span class="label"><i class="fa-solid fa-cube" style="margin-right:4px;"></i> Subtotal Material</span>
                 <span class="value">Rp {{ number_format($hppMaterial, 0, ',', '.') }}</span>
+            </div>
+        </div>
+    @endif
+
+    @if ($pekerjaan->transaksi->isEmpty())
+        <div class="card">
+            <div class="empty-state" style="padding: 60px;">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <p>Belum ada barang yang dicatat untuk pekerjaan ini.<br>Klik "Tambah Barang" untuk mulai.</p>
             </div>
         </div>
     @endif
@@ -381,7 +376,8 @@
     @if ($pekerjaan->transaksi->isNotEmpty())
         <div class="grand-total-card">
             <div>
-                <div class="gt-label"><i class="fa-solid fa-receipt" style="margin-right:6px;"></i>Total HPP Pekerjaan</div>
+                <div class="gt-label"><i class="fa-solid fa-receipt" style="margin-right:6px;"></i>Total HPP Pekerjaan
+                </div>
                 <div class="gt-value">Rp {{ number_format($grandTotal, 0, ',', '.') }}</div>
             </div>
             <div class="gt-breakdown">
@@ -408,8 +404,8 @@
     @endif
 
     <!-- ═══════════════════════════════════════════════════
-                                     MODALS (tidak berubah)
-                                ════════════════════════════════════════════════════ -->
+                                                                 MODALS (tidak berubah)
+                                                            ════════════════════════════════════════════════════ -->
 
     <!-- MODAL TAMBAH BARANG -->
     <div class="modal-backdrop" id="modal-tambah">

@@ -81,7 +81,7 @@
                                     </a>
 
                                     {{-- Edit & Hapus: hanya admin --}}
-                                    @if (auth()->user()->role === 'admin')
+                                     @if (auth()->user()->isAdmin())
                                         <a href="{{ route('pekerjaan.edit', $p) }}" class="btn btn-sm btn-warning"
                                             title="Edit">
                                             <i class="fa-solid fa-pen"></i>
@@ -95,6 +95,7 @@
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>
+                                        
                                     @endif
                                 </div>
                             </td>
