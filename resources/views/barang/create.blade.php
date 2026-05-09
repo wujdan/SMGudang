@@ -13,7 +13,7 @@
                 <h3><i class="fa-solid fa-plus" style="color:var(--accent);"></i> Tambah Barang Baru</h3>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('barang.store') }}" enctype="multipart/form-data">
+                <form id="form-barang" method="POST" action="{{ route('barang.store') }}" enctype="multipart/form-data">
                     @csrf
 
                     <div class="grid-2">
@@ -21,7 +21,8 @@
                             <label class="form-label">Nama Barang <span style="color:var(--danger);">*</span></label>
                             <input type="text" name="nama_barang"
                                 class="form-control {{ $errors->has('nama_barang') ? 'is-invalid' : '' }}"
-                                value="{{ old('nama_barang') }}" placeholder="cth: Batu Gerinda 4&quot;" required autocomplete="off">
+                                value="{{ old('nama_barang') }}" placeholder="cth: Batu Gerinda 4&quot;" required
+                                autocomplete="off">
                             @error('nama_barang')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -32,12 +33,12 @@
                             <select name="kategori" class="form-control {{ $errors->has('kategori') ? 'is-invalid' : '' }}"
                                 required>
                                 <option value="">-- Pilih Kategori --</option>
-                                <option value="cons" {{ old('kategori') == 'cons' ? 'selected' : '' }}>🟡 Consumable 
-                                    </option>
+                                <option value="cons" {{ old('kategori') == 'cons' ? 'selected' : '' }}>🟡 Consumable
+                                </option>
                                 <option value="material" {{ old('kategori') == 'material' ? 'selected' : '' }}>🔵 Material
                                 </option>
-                                <option value="tools" {{ old('kategori') == 'tools' ? 'selected' : '' }}>🟢 Tools 
-                                    </option>
+                                <option value="tools" {{ old('kategori') == 'tools' ? 'selected' : '' }}>🟢 Tools
+                                </option>
                             </select>
                             @error('kategori')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -86,32 +87,25 @@
                             <div class="form-hint">Sistem peringatan jika stok ≤ nilai ini</div>
                         </div>
                         <div class="form-group">
-    <label class="form-label">
-        Harga
-        <span style="color:var(--danger);">*</span>
-    </label>
+                            <label class="form-label">
+                                Harga
+                                <span style="color:var(--danger);">*</span>
+                            </label>
 
-    <input type="number"
-        name="prices"
-        id="harga-input"
-        step="0.01"
-        class="form-control {{ $errors->has('prices') ? 'is-invalid' : '' }}"
-        value="{{ old('prices') }}"
-        placeholder="cth: 100000"
-        required>
+                            <input type="number" name="prices" id="harga-input" step="0.01"
+                                class="form-control {{ $errors->has('prices') ? 'is-invalid' : '' }}"
+                                value="{{ old('prices') }}" placeholder="cth: 100000" required>
 
-    <div id="harga-hint"
-        class="form-hint"
-        style="display:none;">
-        Harga tidak digunakan untuk kategori tools
-    </div>
+                            <div id="harga-hint" class="form-hint" style="display:none;">
+                                Harga tidak digunakan untuk kategori tools
+                            </div>
 
-    @error('prices')
-        <div class="invalid-feedback">
-            {{ $message }}
-        </div>
-    @enderror
-</div>
+                            @error('prices')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Foto Barang</label>
@@ -127,7 +121,7 @@
                     <hr class="divider">
                     <div style="display:flex; gap:8px; justify-content:flex-end;">
                         <a href="{{ route('barang.index') }}" class="btn btn-secondary">Batal</a>
-                        <button type="submit" class="btn btn-dark">
+                        <button type="submit" id="btn-submit" class="btn btn-dark">
                             <i class="fa-solid fa-floppy-disk"></i> Simpan Barang
                         </button>
                     </div>
@@ -140,77 +134,88 @@
 @endsection
 
 @push('scripts')
-<script>
+    <script>
+        function previewImg(input) {
 
-    function previewImg(input) {
+            const preview =
+                document.getElementById('img-preview');
 
-        const preview =
-            document.getElementById('img-preview');
+            if (input.files && input.files[0]) {
 
-        if (input.files && input.files[0]) {
+                const reader = new FileReader();
 
-            const reader = new FileReader();
+                reader.onload = e => {
 
-            reader.onload = e => {
+                    preview.src = e.target.result;
 
-                preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
 
-                preview.style.display = 'block';
-            };
-
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // TOGGLE HARGA BERDASARKAN KATEGORI
-    document.addEventListener('DOMContentLoaded', function() {
-
-        const kategoriSelect =
-            document.querySelector('[name="kategori"]');
-
-        const hargaInput =
-            document.getElementById('harga-input');
-
-        const hargaHint =
-            document.getElementById('harga-hint');
-
-        function toggleHarga() {
-
-            const kategori = kategoriSelect.value;
-
-            if (kategori === 'tools') {
-
-                hargaInput.value = '';
-
-                hargaInput.setAttribute('disabled', true);
-
-                hargaInput.removeAttribute('required');
-
-                hargaInput.style.background = '#f1f5f9';
-
-                hargaHint.style.display = 'block';
-
-            } else {
-
-                hargaInput.removeAttribute('disabled');
-
-                hargaInput.setAttribute('required', true);
-
-                hargaInput.style.background = '';
-
-                hargaHint.style.display = 'none';
+                reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // INIT
-        toggleHarga();
+        // TOGGLE HARGA BERDASARKAN KATEGORI
+        document.addEventListener('DOMContentLoaded', function() {
 
-        // CHANGE
-        kategoriSelect.addEventListener(
-            'change',
-            toggleHarga
-        );
-    });
+            const kategoriSelect =
+                document.querySelector('[name="kategori"]');
 
-</script>
+            const hargaInput =
+                document.getElementById('harga-input');
+
+            const hargaHint =
+                document.getElementById('harga-hint');
+
+            function toggleHarga() {
+
+                const kategori = kategoriSelect.value;
+
+                if (kategori === 'tools') {
+
+                    hargaInput.value = '';
+
+                    hargaInput.setAttribute('disabled', true);
+
+                    hargaInput.removeAttribute('required');
+
+                    hargaInput.style.background = '#f1f5f9';
+
+                    hargaHint.style.display = 'block';
+
+                } else {
+
+                    hargaInput.removeAttribute('disabled');
+
+                    hargaInput.setAttribute('required', true);
+
+                    hargaInput.style.background = '';
+
+                    hargaHint.style.display = 'none';
+                }
+            }
+
+            // INIT
+            toggleHarga();
+
+            // CHANGE
+            kategoriSelect.addEventListener(
+                'change',
+                toggleHarga
+            );
+        });
+    </script>
+
+    <script>
+        document.getElementById('form-barang').addEventListener('submit', function() {
+
+            const btn = document.getElementById('btn-submit');
+
+            btn.disabled = true;
+
+            btn.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+        });
+    </script>
 @endpush
