@@ -92,6 +92,7 @@ class BarangController extends Controller
                     'tanggal' => $tanggal,
                     'sumber' => 'Stok Awal',
                     'keterangan' => 'Stok awal saat pembuatan barang',
+                    'created_by_name' => auth()->user()->name,
                 ]);
 
                 BatchBarang::create([
@@ -101,6 +102,7 @@ class BarangController extends Controller
                     'qty_awal' => $request->stok,
                     'qty_sisa' => $request->stok,
                     'harga_satuan' => $validated['prices'],
+                    'created_by_name' => auth()->user()->name,
                 ]);
             }
         });
