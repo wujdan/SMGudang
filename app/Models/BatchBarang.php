@@ -16,13 +16,14 @@ class BatchBarang extends Model
         'qty_awal',
         'qty_sisa',
         'harga_satuan',
+        'created_by_name',
     ];
 
     protected $casts = [
         'tanggal_masuk' => 'date',
-        'harga_satuan'  => 'float',
-        'qty_awal'      => 'integer',
-        'qty_sisa'      => 'integer',
+        'harga_satuan' => 'float',
+        'qty_awal' => 'integer',
+        'qty_sisa' => 'integer',
     ];
 
     public function barang(): BelongsTo
@@ -31,8 +32,8 @@ class BatchBarang extends Model
     }
 
     /**
-    * Nilai total batch (qty_awal × harga_satuan).
-    */
+     * Nilai total batch (qty_awal × harga_satuan).
+     */
     public function getTotalNilaiAttribute(): float
     {
         return $this->qty_awal * $this->harga_satuan;

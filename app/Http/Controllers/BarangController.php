@@ -71,8 +71,11 @@ class BarangController extends Controller
             $validated['foto'] = $request->file('foto')->store('barang', 'public');
         }
 
+        // ✅ Tambahkan nama penginput
+        $validated['created_by_name'] = auth()->user()->name;
+
         DB::transaction(function () use ($validated, $request) {
-            // Simpan barang dengan prices dari input
+            // Simpan barang dengan prices dan created_by_name
             $barang = Barang::create($validated);
 
             if ($request->stok > 0) {

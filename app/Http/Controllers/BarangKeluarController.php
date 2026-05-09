@@ -169,6 +169,7 @@ class BarangKeluarController extends Controller
                         'hpp_satuan' => $hargaRow,
                         'total_hpp' => $totalHppRow,
                         'keterangan' => $keteranganBatch,
+                        'created_by_name' => auth()->user()->name,
                     ]);
 
                     // Refresh stok barang setelah setiap baris agar stok_sebelum

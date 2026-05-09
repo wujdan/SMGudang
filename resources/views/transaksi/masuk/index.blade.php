@@ -42,6 +42,7 @@
                         <th>Stok Sebelum</th>
                         <th>Stok Sesudah</th>
                         <th>Sumber</th>
+                        <th>Diinput Oleh</th>
                         <th>Total Harga</th>
                         <th>Aksi</th>
                     </tr>
@@ -62,6 +63,7 @@
                             <td style="color: var(--muted);">{{ $bm->stok_sebelum }}</td>
                             <td style="font-weight: 600;">{{ $bm->stok_sesudah }}</td>
                             <td style="color: var(--muted);">{{ $bm->sumber ?? '-' }}</td>
+                            <td style="font-size:13px;">{{ $bm->created_by_name ?? '—' }}</td>
                            <td>
 
     @if($bm->barang->kategori === 'tools')

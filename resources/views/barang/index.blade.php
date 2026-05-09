@@ -200,11 +200,11 @@
             }
 
             /*
-                 * Filter: gunakan grid 2 kolom
-                 * Baris 1: search (full lebar)
-                 * Baris 2: kategori | status
-                 * Baris 3: tombol (full lebar)
-                 */
+                         * Filter: gunakan grid 2 kolom
+                         * Baris 1: search (full lebar)
+                         * Baris 2: kategori | status
+                         * Baris 3: tombol (full lebar)
+                         */
             .filter-form {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -269,6 +269,12 @@
             }
 
             .col-harga {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .col-penginput {
                 display: none;
             }
         }
@@ -337,6 +343,7 @@
                         <th style="width:65px;">Stok</th>
                         <th class="col-status" style="width:90px;">Status</th>
                         <th class="col-harga" style="width:130px;">Harga</th>
+                        <th class="col-penginput" style="width:120px;">Diinput Oleh</th>
                         <th style="width:95px; text-align:center;">Aksi</th>
                     </tr>
                 </thead>
@@ -423,7 +430,9 @@
                                     </span>
                                 @endif
                             </td>
-
+                            <td class="col-penginput" style="font-size:13px;">
+                                {{ $b->created_by_name ?? '—' }}
+                            </td>
                             {{-- Aksi --}}
                             <td>
                                 <div class="action-group" style="justify-content: center;">

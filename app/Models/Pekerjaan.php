@@ -15,7 +15,8 @@ class Pekerjaan extends Model
         'tanggal_mulai',
         'tanggal_selesai',
         'status',
-        'keterangan'
+        'keterangan',
+        'created_by_name',
     ];
 
     protected $casts = [
@@ -40,12 +41,27 @@ class Pekerjaan extends Model
         return $this->toolsDipinjam()->exists();
     }
 
+    /**
+     * Generate kode pekerjaan unik: PKJ-YYYYMM-XXX
+     * Mencari nomor urut terakhir di bulan berjalan, bukan dari count().
+     */
     public static function generateKode(): string
     {
-        $year = date('Y');
-        $month = date('m');
-        $count = self::whereYear('created_at', $year)->whereMonth('created_at', $month)->count() + 1;
-        return 'PKJ-' . $year . $month . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        $prefix = 'PKJ-' . date('Ym') . '-';
+
+        $last = self::where('kode_pekerjaan', 'like', $prefix . '%')
+            ->orderBy('kode_pekerjaan', 'desc')
+            ->lockForUpdate()
+            ->first();
+
+        if ($last) {
+            $lastNumber = (int) substr($last->kode_pekerjaan, strlen($prefix));
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        return $prefix . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
     }
 
     public function getTotalHppAttribute()

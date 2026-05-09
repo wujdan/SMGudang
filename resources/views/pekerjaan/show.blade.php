@@ -177,6 +177,7 @@
                             <th>Rencana Kembali</th>
                             <th>Tgl Kembali</th>
                             <th>Total Harga</th>
+                            <th>Diinput Oleh</th>
                             <th>Status</th>
                             @if (auth()->user()->isAdmin())
                                 <th>Aksi</th>
@@ -197,13 +198,12 @@
                                                 <i class="fa-solid fa-triangle-exclamation"></i>
                                             @endif
                                         </span>
-                                    @else
-                                        -
                                     @endif
                                 </td>
                                 <td>{{ $t->tgl_kembali_aktual ? $t->tgl_kembali_aktual->format('d/m/Y') : '-' }}</td>
                                 <td><span style="font-size: 12px; color: var(--muted); font-style: italic;">Tidak
                                         digunakan</span></td>
+                                <td style="font-size:13px;">{{ $t->created_by_name ?? '—' }}</td>
                                 <td><span class="badge {{ $t->status_badge }}">{{ $t->status_label }}</span></td>
                                 <td>
                                     {{-- Hanya admin yang bisa melakukan aksi --}}
@@ -249,6 +249,7 @@
                             <th>Satuan</th>
                             <th>Tanggal Keluar</th>
                             <th>Total Harga</th>
+                            <th>Diinput Oleh</th>
                             <th>Keterangan</th>
                             @if (auth()->user()->isAdmin())
                                 <th>Aksi</th>
@@ -268,6 +269,7 @@
                                         <div class="total">Total: Rp {{ number_format($t->total_hpp, 0, ',', '.') }}</div>
                                     </div>
                                 </td>
+                                <td style="font-size:13px;">{{ $t->created_by_name ?? '—' }}</td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
                                 <td style="display: flex; gap: 6px;">
                                     @if (auth()->user()->isAdmin())
@@ -308,6 +310,7 @@
                             <th>Satuan</th>
                             <th>Tanggal Keluar</th>
                             <th>Total Harga</th>
+                            <th>Diinput Oleh</th>
                             <th>Keterangan</th>
                             @if (auth()->user()->isAdmin())
                                 <th>Aksi</th>
@@ -327,6 +330,7 @@
                                         <div class="total">Total: Rp {{ number_format($t->total_hpp, 0, ',', '.') }}</div>
                                     </div>
                                 </td>
+                                <td style="font-size:13px;">{{ $t->created_by_name ?? '—' }}</td>
                                 <td style="color: var(--muted);">{{ $t->keterangan ?? '-' }}</td>
                                 <td style="display: flex; gap: 6px;">
                                     @if (auth()->user()->isAdmin())
@@ -348,15 +352,6 @@
             <div class="subtotal-bar">
                 <span class="label"><i class="fa-solid fa-cube" style="margin-right:4px;"></i> Subtotal Material</span>
                 <span class="value">Rp {{ number_format($hppMaterial, 0, ',', '.') }}</span>
-            </div>
-        </div>
-    @endif
-
-    @if ($pekerjaan->transaksi->isEmpty())
-        <div class="card">
-            <div class="empty-state" style="padding: 60px;">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <p>Belum ada barang yang dicatat untuk pekerjaan ini.<br>Klik "Tambah Barang" untuk mulai.</p>
             </div>
         </div>
     @endif
@@ -404,8 +399,8 @@
     @endif
 
     <!-- ═══════════════════════════════════════════════════
-                                                                 MODALS (tidak berubah)
-                                                            ════════════════════════════════════════════════════ -->
+                                                                         MODALS (tidak berubah)
+                                                                    ════════════════════════════════════════════════════ -->
 
     <!-- MODAL TAMBAH BARANG -->
     <div class="modal-backdrop" id="modal-tambah">

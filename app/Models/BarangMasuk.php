@@ -18,7 +18,8 @@ class BarangMasuk extends Model
         'stok_sesudah',
         'tanggal',
         'sumber',
-        'keterangan'
+        'keterangan',
+        'created_by_name', 
     ];
 
     protected $casts = [

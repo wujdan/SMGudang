@@ -48,8 +48,9 @@ class PekerjaanController extends Controller
             'tanggal_mulai' => 'required|date',
             'keterangan' => 'nullable|string',
         ]);
-
         $validated['kode_pekerjaan'] = Pekerjaan::generateKode();
+        $validated['created_by_name'] = auth()->user()->name;
+
         $pekerjaan = Pekerjaan::create($validated);
 
         return redirect()->route('pekerjaan.show', $pekerjaan)
@@ -220,6 +221,7 @@ class PekerjaanController extends Controller
                         'hpp_satuan' => $hargaRow,
                         'total_hpp' => $totalHppRow,
                         'keterangan' => $keteranganBatch,
+                        'created_by_name' => auth()->user()->name,
                         // fifo_detail tetap disimpan untuk keperluan audit
                         'fifo_detail' => [$batchRow],
                     ]);

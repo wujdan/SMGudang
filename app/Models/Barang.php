@@ -19,8 +19,9 @@ class Barang extends Model
         'foto',
         'keterangan',
         'is_active',
-        'prices'
-    ];
+        'prices',
+        'created_by_name', 
+];
 
     protected $casts = [
         'is_active' => 'boolean',

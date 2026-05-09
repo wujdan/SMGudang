@@ -10,7 +10,7 @@
             </h3>
 
             {{-- Tombol hanya untuk admin --}}
-            @if (auth()->user()->role === 'admin')
+            @if (auth()->user()->isAdmin())
                 <a href="{{ route('pekerjaan.create') }}" class="btn btn-dark">
                     <i class="fa-solid fa-plus"></i> Buat Pekerjaan Baru
                 </a>
@@ -43,6 +43,7 @@
                         <th>Tools Aktif</th>
                         <th>Status</th>
                         <th>Total HPP</th>
+                        <th>DiBuat Oleh</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -72,6 +73,7 @@
                                     Rp {{ number_format($p->transaksi->sum('total_hpp'), 0, ',', '.') }}
                                 </div>
                             </td>
+                            <td style="font-size:13px;">{{ $p->created_by_name ?? '—' }}</td>
                             <td>
                                 <div style="display: flex; gap: 4px;">
                                     {{-- Detail: muncul untuk semua role --}}
@@ -81,7 +83,7 @@
                                     </a>
 
                                     {{-- Edit & Hapus: hanya admin --}}
-                                     @if (auth()->user()->isAdmin())
+                                    @if (auth()->user()->isAdmin())
                                         <a href="{{ route('pekerjaan.edit', $p) }}" class="btn btn-sm btn-warning"
                                             title="Edit">
                                             <i class="fa-solid fa-pen"></i>
@@ -95,7 +97,6 @@
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>
-                                        
                                     @endif
                                 </div>
                             </td>

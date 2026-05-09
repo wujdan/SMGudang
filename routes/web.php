@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\BarangMasukController;
+use App\Http\Controllers\BarangKeluarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PekerjaanController;
@@ -58,6 +59,8 @@ Route::middleware('auth')->group(function () {
             ->name('barang-keluar.create');
         Route::post('barang-keluar/{pekerjaan}', [\App\Http\Controllers\BarangKeluarController::class, 'store'])
             ->name('barang-keluar.store');
+        Route::get('barang-keluar/{pekerjaan}/create', [BarangKeluarController::class, 'create'])->name('barang-keluar.create');
+        Route::post('barang-keluar/{pekerjaan}', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
 
         // --- Pekerjaan: CRUD lainnya (store, edit, update, delete) ---
         Route::post('pekerjaan', [PekerjaanController::class, 'store'])->name('pekerjaan.store');

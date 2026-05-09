@@ -63,47 +63,30 @@ class BarangMasukController extends Controller
 
                 // NORMALISASI HARGA
                 if ($barang->kategori === 'tools') {
-
                     $hargaSatuan = 0;
-
                 } else {
-
-                    $hargaSatuan = str_replace(
-                        '.',
-                        '',
-                        $item['harga_satuan'] ?? 0
-                    );
-
+                    $hargaSatuan = str_replace('.', '', $item['harga_satuan'] ?? 0);
                     $hargaSatuan = (float) $hargaSatuan;
                 }
 
                 $stokSebelum = $barang->stok;
-
                 $stokSesudah = $stokSebelum + $item['jumlah'];
-
                 $noTransaksi = BarangMasuk::generateNoTransaksi();
 
                 // 1. SIMPAN BARANG MASUK
-                // CEK APAKAH SUDAH ADA TRANSAKSI SAMA
                 $existingMasuk = BarangMasuk::where('barang_id', $item['barang_id'])
                     ->whereDate('tanggal', $item['tanggal'])
                     ->where('harga_satuan', $hargaSatuan)
                     ->first();
 
                 if ($existingMasuk) {
-
-                    // UPDATE JUMLAH
+                    // UPDATE JUMLAH (tanpa ubah created_by_name)
                     $existingMasuk->update([
-
                         'jumlah' => $existingMasuk->jumlah + $item['jumlah'],
-
-                        // stok sesudah ikut bertambah
                         'stok_sesudah' => $existingMasuk->stok_sesudah + $item['jumlah'],
                     ]);
-
                 } else {
-
-                    // BUAT BARU
+                    // BUAT BARU -> catat penginput
                     BarangMasuk::create([
                         'no_transaksi' => $noTransaksi,
                         'barang_id' => $item['barang_id'],
@@ -114,41 +97,31 @@ class BarangMasukController extends Controller
                         'tanggal' => $item['tanggal'],
                         'sumber' => $item['sumber'] ?? null,
                         'keterangan' => $item['keterangan'] ?? null,
+                        'created_by_name' => auth()->user()->name, // ✅
                     ]);
                 }
 
                 // 2. UPDATE MASTER BARANG
-                $updateData = [
-                    'stok' => $stokSesudah,
-                ];
-
-                // harga hanya untuk non-tools
+                $updateData = ['stok' => $stokSesudah];
                 if ($barang->kategori !== 'tools') {
                     $updateData['prices'] = $hargaSatuan;
                 }
-
                 $barang->update($updateData);
 
                 // 3. SIMPAN BATCH FIFO
-                // 3. CEK APAKAH SUDAH ADA BATCH SAMA
                 $existingBatch = BatchBarang::where('barang_id', $item['barang_id'])
                     ->whereDate('tanggal_masuk', $item['tanggal'])
                     ->where('harga_satuan', $hargaSatuan)
                     ->first();
 
-                // JIKA SUDAH ADA → TAMBAH QTY
                 if ($existingBatch) {
-
+                    // TAMBAH QTY (tanpa ubah created_by_name)
                     $existingBatch->update([
-
                         'qty_awal' => $existingBatch->qty_awal + $item['jumlah'],
-
                         'qty_sisa' => $existingBatch->qty_sisa + $item['jumlah'],
                     ]);
-
                 } else {
-
-                    // JIKA BELUM ADA → BUAT BARU
+                    // BUAT BARU -> catat penginput
                     BatchBarang::create([
                         'barang_id' => $item['barang_id'],
                         'no_transaksi_masuk' => $noTransaksi,
@@ -156,6 +129,7 @@ class BarangMasukController extends Controller
                         'qty_awal' => $item['jumlah'],
                         'qty_sisa' => $item['jumlah'],
                         'harga_satuan' => $hargaSatuan,
+                        'created_by_name' => auth()->user()->name, // ✅
                     ]);
                 }
             }
@@ -163,10 +137,7 @@ class BarangMasukController extends Controller
 
         return redirect()
             ->route('barang-masuk.index')
-            ->with(
-                'success',
-                'Barang masuk berhasil dicatat!'
-            );
+            ->with('success', 'Barang masuk berhasil dicatat!');
     }
 
     public function destroy(BarangMasuk $barangMasuk)
@@ -180,7 +151,7 @@ class BarangMasukController extends Controller
             // Hapus batch yang terkait transaksi ini
             BatchBarang::where('no_transaksi_masuk', $barangMasuk->no_transaksi)->delete();
 
-            // Update harga master ke batch terbaru yang masih ada (berdasarkan tanggal masuk)
+            // Update harga master ke batch terbaru yang masih ada
             $batchTerbaru = BatchBarang::where('barang_id', $barang->id)
                 ->orderByDesc('tanggal_masuk')
                 ->orderByDesc('id')

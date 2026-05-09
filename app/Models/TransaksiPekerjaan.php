@@ -10,11 +10,21 @@ class TransaksiPekerjaan extends Model
     protected $table = 'transaksi_pekerjaans';
 
     protected $fillable = [
-        'no_transaksi', 'pekerjaan_id', 'barang_id',
-        'jumlah', 'stok_sebelum', 'stok_sesudah',
-        'tanggal_keluar', 'tgl_kembali_rencana', 'tgl_kembali_aktual',
-        'stok_sebelum_kembali', 'status_pinjam', 'keterangan',
-        'hpp_satuan', 'total_hpp'
+        'no_transaksi',
+        'pekerjaan_id',
+        'barang_id',
+        'jumlah',
+        'stok_sebelum',
+        'stok_sesudah',
+        'tanggal_keluar',
+        'tgl_kembali_rencana',
+        'tgl_kembali_aktual',
+        'stok_sebelum_kembali',
+        'status_pinjam',
+        'keterangan',
+        'hpp_satuan',
+        'total_hpp',
+        'created_by_name',
     ];
 
     protected $casts = [
@@ -35,15 +45,18 @@ class TransaksiPekerjaan extends Model
 
     public function isTerlambat(): bool
     {
-        if ($this->status_pinjam !== 'dipinjam') return false;
-        if (!$this->tgl_kembali_rencana) return false;
+        if ($this->status_pinjam !== 'dipinjam')
+            return false;
+        if (!$this->tgl_kembali_rencana)
+            return false;
         return now()->gt($this->tgl_kembali_rencana);
     }
 
     public function getStatusLabelAttribute(): string
     {
-        if ($this->status_pinjam === null) return 'Keluar Permanen';
-        return match($this->status_pinjam) {
+        if ($this->status_pinjam === null)
+            return 'Keluar Permanen';
+        return match ($this->status_pinjam) {
             'dipinjam' => $this->isTerlambat() ? 'Terlambat' : 'Dipinjam',
             'dikembalikan' => 'Dikembalikan',
             default => '-',
@@ -52,25 +65,26 @@ class TransaksiPekerjaan extends Model
 
     public function getStatusBadgeAttribute(): string
     {
-        if ($this->status_pinjam === null) return 'badge-secondary';
-        return match($this->status_pinjam) {
+        if ($this->status_pinjam === null)
+            return 'badge-secondary';
+        return match ($this->status_pinjam) {
             'dipinjam' => $this->isTerlambat() ? 'badge-danger' : 'badge-warning',
             'dikembalikan' => 'badge-success',
             default => 'badge-secondary',
         };
     }
 
-   public static function generateNoTransaksi(int $pekerjaanId): string
-{
-    $date = date('Ymd');
-    $prefix = 'TRX-' . $date . '-P' . str_pad($pekerjaanId, 3, '0', STR_PAD_LEFT) . '-';
+    public static function generateNoTransaksi(int $pekerjaanId): string
+    {
+        $date = date('Ymd');
+        $prefix = 'TRX-' . $date . '-P' . str_pad($pekerjaanId, 3, '0', STR_PAD_LEFT) . '-';
 
-    $last = self::where('pekerjaan_id', $pekerjaanId)
-        ->where('no_transaksi', 'like', $prefix . '%')
-        ->max('no_transaksi');
+        $last = self::where('pekerjaan_id', $pekerjaanId)
+            ->where('no_transaksi', 'like', $prefix . '%')
+            ->max('no_transaksi');
 
-    $next = $last ? (intval(substr($last, strrpos($last, '-') + 1)) + 1) : 1;
+        $next = $last ? (intval(substr($last, strrpos($last, '-') + 1)) + 1) : 1;
 
-    return $prefix . str_pad($next, 3, '0', STR_PAD_LEFT);
-}
+        return $prefix . str_pad($next, 3, '0', STR_PAD_LEFT);
+    }
 }
