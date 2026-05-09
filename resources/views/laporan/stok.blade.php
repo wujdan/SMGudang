@@ -36,7 +36,7 @@
             </form>
         </div>
         <div class="table-wrap">
-            <table>
+            <table class="table">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -46,6 +46,7 @@
                         <th>Satuan</th>
                         <th>Stok</th>
                         <th>Status</th>
+                        <th>Harga</th>
                         @if (request('kategori') == 'tools' || !request('kategori'))
                             <th>Dipinjam</th>
                         @endif
@@ -59,7 +60,8 @@
                                     style="font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ $b->kode_barang }}</code>
                             </td>
                             <td style="font-weight: 600;">{{ $b->nama_barang }}</td>
-                            <td><span class="badge badge-{{ $b->kategori_badge }}">{{ strtoupper($b->kategori) }}</span>
+                            <td><span
+                                    class="badge badge-{{ $b->kategori_badge ?? 'secondary' }}">{{ strtoupper($b->kategori) }}</span>
                             </td>
                             <td>{{ $b->satuan }}</td>
                             <td>
@@ -73,12 +75,24 @@
                                     <span class="badge badge-danger">HABIS</span>
                                 @elseif($b->isStokMenipis())
                                     <span class="badge badge-warning">MENIPIS</span>
-                                @else<span class="badge badge-success">AMAN</span>
+                                @else
+                                    <span class="badge badge-success">AMAN</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($b->kategori === 'tools')
+                                    <span style="color: var(--muted); font-size: 12px; font-style: italic;">
+                                        Tidak digunakan
+                                    </span>
+                                @else
+                                    <span class="harga-item">
+                                        Rp {{ number_format($b->prices, 0, ',', '.') }}
+                                    </span>
                                 @endif
                             </td>
                             @if (request('kategori') == 'tools' || !request('kategori'))
                                 <td>
-                                    @if ($b->isTools() && $b->stok_dipinjam > 0)
+                                    @if ($b->isTools() && ($b->stok_dipinjam ?? 0) > 0)
                                         <span class="badge badge-warning">{{ $b->stok_dipinjam }} dipinjam</span>
                                     @else
                                         <span style="color: var(--muted);">-</span>
@@ -89,7 +103,8 @@
                     @empty
                         <tr>
                             <td colspan="9">
-                                <div class="empty-state"><i class="fa-solid fa-clipboard-list"></i>
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-clipboard-list"></i>
                                     <p>Tidak ada data</p>
                                 </div>
                             </td>
