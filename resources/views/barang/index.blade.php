@@ -38,6 +38,7 @@
             border-radius: var(--radius) var(--radius) 0 0;
         }
 
+        /* Desktop: semua elemen dalam satu baris */
         .filter-form {
             display: flex;
             gap: 8px;
@@ -49,15 +50,36 @@
             height: 34px;
             padding: 0 10px;
             font-size: 13px;
+            box-sizing: border-box;
         }
 
         .filter-search {
             flex: 1;
-            min-width: 180px;
+            min-width: 160px;
         }
 
         .filter-select {
-            width: 150px;
+            width: 145px;
+            flex-shrink: 0;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* ── TABLE WRAP ── */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrap table {
+            width: 100%;
+            min-width: 520px;
+            border-collapse: collapse;
         }
 
         /* ── ITEM PHOTO ── */
@@ -88,6 +110,10 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .item-name {
+            word-break: break-word;
         }
 
         /* ── STOK NUMBER ── */
@@ -128,8 +154,7 @@
             white-space: nowrap;
         }
 
-        /* ── RESPONSIVE TABLE ── */
-        /* hide less-critical columns on small screens */
+        /* ── TABLET (≤900px) ── */
         @media (max-width: 900px) {
 
             .col-min,
@@ -138,18 +163,8 @@
             }
         }
 
+        /* ── SMALL TABLET (≤768px) ── */
         @media (max-width: 768px) {
-            .page-header {
-                flex-wrap: wrap;
-            }
-
-            .filter-select {
-                width: 130px;
-            }
-
-            .filter-search {
-                min-width: 140px;
-            }
 
             .col-no,
             .col-kode {
@@ -163,28 +178,97 @@
             }
         }
 
-        @media (max-width: 540px) {
-            .filter-form {
+        /* ── MOBILE (≤600px) ── */
+        @media (max-width: 600px) {
+
+            /* Page header susun vertikal */
+            .page-header {
                 flex-direction: column;
                 align-items: stretch;
             }
 
-            .filter-select,
+            .page-header .actions {
+                width: 100%;
+            }
+
+            .page-header .actions .btn {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+
+            /*
+                 * Filter: gunakan grid 2 kolom
+                 * Baris 1: search (full lebar)
+                 * Baris 2: kategori | status
+                 * Baris 3: tombol (full lebar)
+                 */
+            .filter-form {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas:
+                    "search  search"
+                    "kat     status"
+                    "actions actions";
+                gap: 8px;
+            }
+
             .filter-search {
+                grid-area: search;
+                width: 100%;
+                min-width: unset;
+                flex: none;
+            }
+
+            /* Selector pertama = Kategori */
+            .filter-form select:nth-of-type(1) {
+                grid-area: kat;
+                width: 100%;
+            }
+
+            /* Selector kedua = Status */
+            .filter-form select:nth-of-type(2) {
+                grid-area: status;
                 width: 100%;
             }
 
             .filter-actions {
+                grid-area: actions;
                 display: flex;
                 gap: 8px;
             }
 
             .filter-actions .btn {
                 flex: 1;
+                display: flex;
+                align-items: center;
                 justify-content: center;
             }
 
+            /* Sembunyikan kolom status */
             .col-status {
+                display: none;
+            }
+
+            /* Footer susun vertikal */
+            .card-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+
+        /* ── VERY SMALL (≤400px) ── */
+        @media (max-width: 400px) {
+
+            .item-photo,
+            .item-photo-placeholder {
+                display: none;
+            }
+
+            .col-harga {
                 display: none;
             }
         }
@@ -250,10 +334,10 @@
                         <th>Nama Barang</th>
                         <th style="width:110px;">Kategori</th>
                         <th class="col-satuan" style="width:80px;">Satuan</th>
-                        <th style="width:80px;">Stok</th>
-                        <th class="col-status" style="width:95px;">Status</th>
-                        <th>Harga </th>
-                        <th style="width:100px; text-align:center;">Aksi</th>
+                        <th style="width:65px;">Stok</th>
+                        <th class="col-status" style="width:90px;">Status</th>
+                        <th class="col-harga" style="width:130px;">Harga</th>
+                        <th style="width:95px; text-align:center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -315,6 +399,7 @@
                                     <div class="stok-pinjam">{{ $b->stok_dipinjam }} dipinjam</div>
                                 @endif
                             </td>
+
                             {{-- Status --}}
                             <td class="col-status">
                                 @if ($b->stok == 0)
@@ -325,47 +410,34 @@
                                     <span class="badge badge-success">AMAN</span>
                                 @endif
                             </td>
-                            <td>
 
+                            {{-- Harga --}}
+                            <td class="col-harga">
                                 @if ($b->kategori === 'tools')
-                                    <span
-                                        style="
-            color: var(--muted);
-            font-size: 12px;
-            font-style: italic;
-        ">
+                                    <span style="color: var(--muted); font-size: 12px; font-style: italic;">
                                         Tidak digunakan
                                     </span>
                                 @else
                                     <span class="harga-item">
-
                                         Rp {{ number_format($b->prices, 0, ',', '.') }}
-
                                     </span>
                                 @endif
-
                             </td>
+
                             {{-- Aksi --}}
                             <td>
                                 <div class="action-group" style="justify-content: center;">
-
-                                    {{-- Detail --}}
                                     <a href="{{ route('barang.show', $b) }}" class="btn btn-xs btn-secondary"
                                         title="Detail">
                                         <i class="fa-solid fa-eye"></i>
                                     </a>
-
-                                    {{-- Edit --}}
                                     <a href="{{ route('barang.edit', $b) }}" class="btn btn-xs btn-warning" title="Edit">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
-
-                                    {{-- Hapus --}}
                                     <button type="button" class="btn btn-xs btn-danger" title="Hapus"
                                         onclick="confirmDelete({{ $b->id }}, '{{ addslashes($b->nama_barang) }}')">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
-
                                 </div>
                             </td>
                         </tr>
@@ -405,11 +477,12 @@
         </div>
 
     </div>
+
     {{-- MODAL HAPUS --}}
     <div id="deleteModal"
         style="display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
         <div
-            style="background:white; border-radius:12px; padding:24px; width:100%; max-width:420px; margin:0 16px; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+            style="background:white; border-radius:12px; padding:24px; width:calc(100% - 32px); max-width:420px; box-shadow:0 8px 32px rgba(0,0,0,0.15); box-sizing:border-box;">
             <div
                 style="font-weight:700; font-size:15px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border);">
                 Hapus Barang
@@ -435,15 +508,13 @@
             function confirmDelete(id, nama) {
                 document.getElementById('deleteNama').textContent = nama;
                 document.getElementById('deleteForm').action = '/barang/' + id;
-                const modal = document.getElementById('deleteModal');
-                modal.style.display = 'flex';
+                document.getElementById('deleteModal').style.display = 'flex';
             }
 
             function closeDelete() {
                 document.getElementById('deleteModal').style.display = 'none';
             }
 
-            // Tutup kalau klik backdrop
             document.getElementById('deleteModal').addEventListener('click', function(e) {
                 if (e.target === this) closeDelete();
             });
