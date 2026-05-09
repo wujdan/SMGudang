@@ -399,8 +399,8 @@
     @endif
 
     <!-- ═══════════════════════════════════════════════════
-                                                                         MODALS (tidak berubah)
-                                                                    ════════════════════════════════════════════════════ -->
+                                                                     MODALS (tidak berubah)
+                                                                ════════════════════════════════════════════════════ -->
 
     <!-- MODAL TAMBAH BARANG -->
     <div class="modal-backdrop" id="modal-tambah">

@@ -41,18 +41,43 @@ class BarangMasukController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.barang_id' => 'required|exists:barangs,id',
-            'items.*.jumlah' => 'required|integer|min:1',
+        $validated = $request->validate(
+            [
+                'items' => 'required|array|min:1',
+                'items.*.barang_id' => 'required|exists:barangs,id',
+                'items.*.jumlah' => 'required|integer|min:1',
 
-            // nullable karena tools bisa disable input
-            'items.*.harga_satuan' => 'nullable',
+                'items.*.harga_satuan' => 'nullable',
 
-            'items.*.tanggal' => 'required|date',
-            'items.*.sumber' => 'nullable|string|max:255',
-            'items.*.keterangan' => 'nullable|string',
-        ]);
+                'items.*.tanggal' => 'required|date',
+                'items.*.sumber' => 'nullable|string|max:255',
+                'items.*.keterangan' => 'nullable|string',
+            ],
+
+            // PESAN ERROR
+            [
+                'items.required' => 'Minimal harus ada 1 item.',
+                'items.array' => 'Format item tidak valid.',
+
+                'items.*.barang_id.required' => 'Barang wajib dipilih.',
+                'items.*.barang_id.exists' => 'Barang tidak ditemukan.',
+
+                'items.*.jumlah.required' => 'Jumlah wajib diisi.',
+                'items.*.jumlah.integer' => 'Jumlah harus berupa angka.',
+                'items.*.jumlah.min' => 'Jumlah minimal 1.',
+
+                'items.*.tanggal.required' => 'Tanggal wajib diisi.',
+                'items.*.tanggal.date' => 'Format tanggal tidak valid.',
+            ],
+
+            // ATTRIBUTE
+            [
+                'items.*.barang_id' => 'Barang',
+                'items.*.jumlah' => 'Jumlah',
+                'items.*.tanggal' => 'Tanggal',
+            ]
+        );
+
 
         DB::transaction(function () use ($validated) {
 
