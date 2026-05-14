@@ -38,11 +38,11 @@
             border-radius: var(--radius) var(--radius) 0 0;
         }
 
-        /* Desktop: semua elemen dalam satu baris */
+        /* Filter Form */
         .filter-form {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 0;
             align-items: center;
         }
 
@@ -53,20 +53,26 @@
             box-sizing: border-box;
         }
 
-        .filter-search {
+        .search-input {
+            flex: 2;
+            min-width: 0;
+        }
+
+        .status-select {
             flex: 1;
-            min-width: 160px;
+            min-width: 0;
+            max-width: 180px;
         }
 
-        .filter-select {
-            width: 145px;
+        .filter-form .btn {
             flex-shrink: 0;
-        }
-
-        .filter-actions {
+            white-space: nowrap;
+            height: 34px;
+            padding: 0 14px;
+            font-size: 13px;
             display: flex;
-            gap: 8px;
-            flex-shrink: 0;
+            align-items: center;
+            gap: 4px;
         }
 
         /* ── TABLE WRAP ── */
@@ -178,10 +184,10 @@
             }
         }
 
-        /* ── MOBILE (≤600px) ── */
-        @media (max-width: 600px) {
+        /* ── MOBILE (≤640px) ── */
+        @media (max-width: 640px) {
 
-            /* Page header: tetap horizontal, tombol di kanan atas */
+            /* Page header */
             .page-header {
                 flex-direction: row;
                 align-items: center;
@@ -196,70 +202,39 @@
                 font-size: 11px;
             }
 
-            .page-header .actions {
-                width: auto;
-                flex-shrink: 0;
-            }
-
             .page-header .actions .btn {
-                width: auto;
                 padding: 6px 14px;
                 font-size: 13px;
             }
 
+            /* Filter: search di atas, select & tombol di bawah */
             .filter-form {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                grid-template-areas:
-                    "search  search"
-                    "kat     status"
-                    "actions actions";
+                flex-wrap: wrap;
                 gap: 8px;
             }
 
-            .filter-search {
-                grid-area: search;
-                width: 100%;
-                min-width: unset;
-                flex: none;
+            .search-input {
+                flex: 1 1 100%;
             }
 
-            /* Selector pertama = Kategori */
-            .filter-form select:nth-of-type(1) {
-                grid-area: kat;
-                width: 100%;
-            }
-
-            /* Selector kedua = Status */
-            .filter-form select:nth-of-type(2) {
-                grid-area: status;
-                width: 100%;
-            }
-
-            .filter-actions {
-                grid-area: actions;
-                display: flex;
-                gap: 8px;
-            }
-
-            .filter-actions .btn {
+            .status-select {
                 flex: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                max-width: none;
             }
 
-            /* Sembunyikan kolom status */
+            .filter-form .btn {
+                flex-shrink: 0;
+            }
+
+            /* Sembunyikan kolom */
             .col-status {
                 display: none;
             }
 
-            /* Sembunyikan kolom penginput */
             .col-penginput {
                 display: none;
             }
 
-            /* Footer susun vertikal */
             .card-footer {
                 flex-direction: column;
                 align-items: flex-start;
@@ -302,32 +277,28 @@
         {{-- FILTER --}}
         <div class="filter-bar">
             <form method="GET" class="filter-form">
-                <input type="text" name="search" class="form-control filter-search" placeholder="Cari nama / kode..."
+                <input type="text" name="search" class="form-control search-input" placeholder="Cari nama / kode..."
                     value="{{ request('search') }}" autocomplete="off">
 
-                <select name="kategori" class="form-control filter-select">
+                <select name="kategori" class="form-control status-select">
                     <option value="">Semua Kategori</option>
                     <option value="cons" {{ request('kategori') == 'cons' ? 'selected' : '' }}>Consumable</option>
                     <option value="material" {{ request('kategori') == 'material' ? 'selected' : '' }}>Material</option>
                     <option value="tools" {{ request('kategori') == 'tools' ? 'selected' : '' }}>Tools</option>
                 </select>
 
-                <select name="status" class="form-control filter-select">
+                <select name="status" class="form-control status-select">
                     <option value="">Semua Status</option>
                     <option value="menipis" {{ request('status') == 'menipis' ? 'selected' : '' }}>Menipis</option>
                     <option value="habis" {{ request('status') == 'habis' ? 'selected' : '' }}>Habis</option>
                 </select>
 
-                <div class="filter-actions">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="fa-solid fa-magnifying-glass"></i> Cari
-                    </button>
-                    @if (request()->anyFilled(['search', 'kategori', 'status']))
-                        <a href="{{ route('barang.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="fa-solid fa-xmark"></i> Reset
-                        </a>
-                    @endif
-                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass"></i> Cari
+                </button>
+                @if (request()->anyFilled(['search', 'kategori', 'status']))
+                    <a href="{{ route('barang.index') }}" class="btn btn-secondary">Reset</a>
+                @endif
             </form>
         </div>
 

@@ -12,20 +12,24 @@
             {{-- Tombol hanya untuk admin --}}
             @if (auth()->user()->isAdmin())
                 <a href="{{ route('pekerjaan.create') }}" class="btn btn-dark">
-                    <i class="fa-solid fa-plus"></i> Buat Pekerjaan Baru
+                    <i class="fa-solid fa-plus"></i> Buat Pekerjaan
                 </a>
             @endif
         </div>
         <div class="card-body" style="padding-bottom: 0;">
-            <form method="GET" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-                <input type="text" name="search" class="form-control" placeholder="Cari nama pekerjaan / PIC..."
-                    value="{{ request('search') }}" style="flex: 1; min-width: 200px;" autocomplete="off">
-                <select name="status" class="form-control" style="width: 150px;">
+            <form method="GET" class="filter-form">
+                <input type="text" name="search" class="form-control search-input"
+                    placeholder="Cari nama pekerjaan / PIC..." value="{{ request('search') }}" autocomplete="off">
+
+                <select name="status" class="form-control status-select">
                     <option value="">Semua Status</option>
                     <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
                 </select>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Cari</button>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-search"></i> Cari
+                </button>
                 @if (request()->anyFilled(['search', 'status']))
                     <a href="{{ route('pekerjaan.index') }}" class="btn btn-secondary">Reset</a>
                 @endif
@@ -103,7 +107,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10"> {{-- ganti 8 → 10 --}}
+                            <td colspan="10">
                                 <div class="empty-state"><i class="fa-solid fa-hard-hat"></i>
                                     <p>Belum ada pekerjaan</p>
                                 </div>
@@ -118,3 +122,52 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        /* Filter Form - Default: Desktop sejajar horizontal */
+        .filter-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 2;
+            min-width: 0;
+        }
+
+        .status-select {
+            flex: 1;
+            min-width: 0;
+            max-width: 180px;
+        }
+
+        .filter-form .btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        /* Mobile/HP: Search di atas, select & tombol di bawah */
+        @media (max-width: 640px) {
+            .filter-form {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .search-input {
+                flex: 1 1 100%;
+            }
+
+            .status-select {
+                flex: 1;
+                max-width: none;
+            }
+
+            .filter-form .btn {
+                flex-shrink: 0;
+            }
+        }
+    </style>
+@endpush

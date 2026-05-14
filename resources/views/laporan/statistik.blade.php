@@ -25,22 +25,27 @@
             margin-top: 3px;
         }
 
-        /* ── PERIODE PILLS ── */
-        .periode-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .page-header-left {
+            flex: 1;
+            min-width: 0;
         }
 
-        .periode-label {
+        /* ── PERIODE PILLS ── */
+        .periode-pills {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .periode-pills .btn {
+            white-space: nowrap;
+            height: 32px;
+            padding: 0 12px;
             font-size: 12px;
-            font-weight: 700;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: .6px;
-            margin-right: 4px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
         }
 
         /* ── CHART CONTAINERS ── */
@@ -246,12 +251,49 @@
             .top-sat {
                 display: none;
             }
+
+            .page-header h2 {
+                font-size: 16px;
+            }
+
+            .page-header p {
+                font-size: 11px;
+            }
+
+            .periode-pills .btn {
+                height: 30px;
+                padding: 0 10px;
+                font-size: 11px;
+            }
         }
 
         @media (max-width: 540px) {
             .chart-container {
                 aspect-ratio: 4/3;
                 max-height: 200px;
+            }
+
+            .page-header {
+                align-items: center;
+            }
+
+            .page-header h2 {
+                font-size: 14px;
+            }
+
+            .page-header p {
+                font-size: 10px;
+            }
+
+            .periode-pills {
+                gap: 4px;
+            }
+
+            .periode-pills .btn {
+                height: 28px;
+                padding: 0 8px;
+                font-size: 10px;
+                font-weight: 700;
             }
         }
     </style>
@@ -261,12 +303,11 @@
 
     {{-- PAGE HEADER --}}
     <div class="page-header">
-        <div>
+        <div class="page-header-left">
             <h2>Statistik & Grafik</h2>
             <p>Ringkasan aktivitas dan performa gudang</p>
         </div>
-        <div class="periode-bar" style="margin-bottom: 0;">
-            <span class="periode-label">Periode</span>
+        <div class="periode-pills">
             @foreach ([7 => '7 Hari', 30 => '30 Hari', 90 => '3 Bulan'] as $val => $lbl)
                 <a href="{{ route('laporan.statistik', ['periode' => $val]) }}"
                     class="btn btn-sm {{ $periode == $val ? 'btn-primary' : 'btn-secondary' }}">
