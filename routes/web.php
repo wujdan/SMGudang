@@ -83,7 +83,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/statistik', [LaporanController::class, 'statistik'])->name('statistik');
             Route::get('/rekap', [LaporanController::class, 'rekap'])->name('rekap');
         });
-
+        // --- Update & Delete Foto Transaksi ---
+        Route::post('/transaksi/{transaksi}/update-foto', [PekerjaanController::class, 'updateFoto'])->name('transaksi.update-foto');
+        Route::delete('/transaksi/{transaksi}/delete-foto', [PekerjaanController::class, 'deleteFoto'])->name('transaksi.delete-foto');
     }); // end role:admin,super_admin
 
     // ---------------------------------

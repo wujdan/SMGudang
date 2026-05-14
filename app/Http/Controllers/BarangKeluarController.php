@@ -9,9 +9,30 @@ use App\Models\TransaksiPekerjaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class BarangKeluarController extends Controller
 {
+
+    // ── Helper: upload 1 file, simpan sebagai WebP ─────────────────
+    private function uploadAsWebp(\Illuminate\Http\UploadedFile $file): string
+    {
+        $manager = new ImageManager(new Driver());
+
+        $image = $manager->read($file->getRealPath())
+            ->scaleDown(1200)
+            ->toWebp(80);
+
+        $filename = 'transaksi-pekerjaan/' . uniqid() . '_' . time() . '.webp';
+        Storage::disk('public')->put($filename, (string) $image);
+
+        return $filename;
+    }
+
+    // ════════════════════════════════════════════════════════════════
+
     public function index()
     {
         $pekerjaan = Pekerjaan::where('status', 'aktif')
@@ -53,134 +74,159 @@ class BarangKeluarController extends Controller
             return back()->withErrors(['error' => 'Pekerjaan sudah selesai!']);
         }
 
-        $validated = $request->validate([
+        // ── Validasi ───────────────────────────────────────────────
+        // heic/heif = format default kamera iPhone
+        // max 10 MB karena foto iPhone bisa 4–8 MB
+        $request->validate([
             'items' => 'required|array|min:1',
             'items.*.barang_id' => 'required|exists:barangs,id',
             'items.*.jumlah' => 'required|integer|min:1',
             'items.*.tgl_keluar' => 'required|date',
             'items.*.tgl_kembali_rencana' => 'nullable|date|after_or_equal:today',
             'items.*.keterangan' => 'nullable|string',
+            'items.*.foto' => 'required|file|mimes:jpeg,jpg,png,webp|max:10240',
         ]);
+        
+        $fotoPaths = [];
 
-        $errors = [];
-
-        DB::transaction(function () use ($validated, $pekerjaan, &$errors) {
-            foreach ($validated['items'] as $item) {
-
-                // ── 1. Lock barang untuk cegah race condition ──────────────────
-                $barang = Barang::lockForUpdate()->find($item['barang_id']);
-
-                // ── 2. Validasi tools wajib punya tgl_kembali_rencana ──────────
-                if ($barang->isTools() && empty($item['tgl_kembali_rencana'])) {
-                    $errors[] = "Barang [{$barang->nama_barang}] (tools) wajib memiliki tanggal rencana kembali.";
-                    continue;
+        foreach ($request->file('items', []) as $index => $itemFiles) {
+            if (!empty($itemFiles['foto']) && $itemFiles['foto']->isValid()) {
+                // Cek apakah benar-benar file gambar dari konten, bukan hanya ekstensi
+                $mime = $itemFiles['foto']->getMimeType();
+                if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'])) {
+                    return back()->withErrors([
+                        'error' => 'File foto item ke-' . ($index + 1) . ' bukan format gambar yang valid (terdeteksi: ' . $mime . ').',
+                    ]);
                 }
+                try {
+                    $fotoPaths[$index] = $this->uploadAsWebp($itemFiles['foto']);
+                } catch (\Throwable $e) {
+                    Log::error("Gagal upload foto item[$index]: " . $e->getMessage());
+                    return back()->withErrors([
+                        'error' => 'Gagal memproses foto item ke-' . ($index + 1) . ': ' . $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+        // ── DB Transaction ─────────────────────────────────────────
+        $errors = [];
+        try {
+            DB::transaction(function () use ($request, $pekerjaan, $fotoPaths, &$errors) {
 
-                // ── 3. Hitung total stok nyata dari batch ──────────────────────
-                $totalBatchSisa = BatchBarang::where('barang_id', $barang->id)
-                    ->where('qty_sisa', '>', 0)
-                    ->lockForUpdate()
-                    ->sum('qty_sisa');
+                foreach ($request->input('items', []) as $index => $item) {
 
-                // ── 4. Cek kecukupan stok ──────────────────────────────────────
-                if ($totalBatchSisa < $item['jumlah']) {
-                    if ($barang->stok < $item['jumlah']) {
-                        $errors[] = "Stok [{$barang->nama_barang}] tidak cukup! "
-                            . "(Batch tersedia: {$totalBatchSisa} {$barang->satuan}, "
-                            . "Stok tercatat: {$barang->stok} {$barang->satuan})";
+                    // 1. Lock barang
+                    $barang = Barang::lockForUpdate()->find($item['barang_id']);
+
+                    // 2. Tools wajib ada tgl_kembali_rencana
+                    if ($barang->isTools() && empty($item['tgl_kembali_rencana'])) {
+                        $errors[] = "Barang [{$barang->nama_barang}] (tools) wajib memiliki tanggal rencana kembali.";
                         continue;
                     }
 
-                    Log::warning("FIFO: Inkonsistensi stok vs batch untuk barang [{$barang->nama_barang}]. "
-                        . "Stok: {$barang->stok}, Total batch: {$totalBatchSisa}, Keluar: {$item['jumlah']}");
-                }
+                    // 3. Cek stok batch
+                    $totalBatchSisa = BatchBarang::where('barang_id', $barang->id)
+                        ->where('qty_sisa', '>', 0)
+                        ->lockForUpdate()
+                        ->sum('qty_sisa');
 
-                // ── 5. Ambil detail FIFO per-batch (TANPA campur harga) ────────
-                $detailFifo = $this->hitungFifoPerBatch($barang, $item['jumlah']);
-
-                // Log jika ada fallback
-                foreach ($detailFifo as $d) {
-                    if ($d['batch_id'] === null) {
-                        Log::warning("FIFO Fallback: [{$barang->nama_barang}] {$d['qty']} unit "
-                            . "menggunakan harga fallback={$d['harga_satuan']} karena batch tidak cukup.");
+                    if ($totalBatchSisa < $item['jumlah']) {
+                        if ($barang->stok < $item['jumlah']) {
+                            $errors[] = "Stok [{$barang->nama_barang}] tidak cukup! "
+                                . "(Batch tersedia: {$totalBatchSisa} {$barang->satuan}, "
+                                . "Stok tercatat: {$barang->stok} {$barang->satuan})";
+                            continue;
+                        }
+                        Log::warning("FIFO inkonsistensi [{$barang->nama_barang}]: stok={$barang->stok}, batch={$totalBatchSisa}");
                     }
-                }
 
-                // ── 6. Kurangi qty_sisa batch (FIFO) ──────────────────────────
-                $this->kurangiBatch($detailFifo);
+                    // 4. Hitung FIFO per-batch
+                    $detailFifo = $this->hitungFifoPerBatch($barang, $item['jumlah']);
 
-                // ── 7. Buat 1 TransaksiPekerjaan PER BATCH ────────────────────
-                //    Prinsip: harga berbeda = baris berbeda, tidak boleh dicampur.
-                foreach ($detailFifo as $batchRow) {
-                    $jumlahRow = $batchRow['qty'];
-                    $hargaRow = $batchRow['harga_satuan'];
-                    $totalHppRow = $batchRow['subtotal'];
-                    $batchId = $batchRow['batch_id']; // null = fallback
-
-                    // Keterangan otomatis: tandai mana stok lama vs stok baru
-                    $keteranganBatch = $this->generateKeteranganBatch(
-                        $batchRow,
-                        $item['keterangan'] ?? null
-                    );
-
-                    if (!$barang->isTools()) {
-                        // ── Cek existing transaksi hari yang sama, barang sama,
-                        //    DAN harga satuan sama (kunci utama: harga tidak boleh campur)
-                        $existing = TransaksiPekerjaan::where('pekerjaan_id', $pekerjaan->id)
-                            ->where('barang_id', $item['barang_id'])
-                            ->whereDate('tanggal_keluar', $item['tgl_keluar'])
-                            ->where('hpp_satuan', $hargaRow)        // ← kunci: harga harus sama
-                            ->whereNull('status_pinjam')
-                            ->first();
-
-                        if ($existing) {
-                            // ── MERGE: hanya jika harga sama ──────────────────
-                            $jumlahBaru = $existing->jumlah + $jumlahRow;
-                            $totalHppBaru = $existing->total_hpp + $totalHppRow;
-
-                            $existing->update([
-                                'jumlah' => $jumlahBaru,
-                                'stok_sesudah' => $existing->stok_sesudah - $jumlahRow,
-                                'hpp_satuan' => $hargaRow, // tetap sama, tidak berubah
-                                'total_hpp' => $totalHppBaru,
-                                'keterangan' => $keteranganBatch ?? $existing->keterangan,
-                            ]);
-
-                            $barang->update(['stok' => $barang->stok - $jumlahRow]);
-
-                            continue; // lanjut ke batch berikutnya
+                    foreach ($detailFifo as $d) {
+                        if ($d['is_fallback']) {
+                            Log::warning("FIFO Fallback [{$barang->nama_barang}]: {$d['qty']} unit @ {$d['harga_satuan']}");
                         }
                     }
 
-                    // ── BUAT baris transaksi baru untuk batch ini ──────────────
-                    $stokSebelum = $barang->stok;
-                    $stokSesudah = $stokSebelum - $jumlahRow;
+                    // 5. Kurangi batch
+                    $this->kurangiBatch($detailFifo);
 
-                    TransaksiPekerjaan::create([
-                        'no_transaksi' => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
-                        'pekerjaan_id' => $pekerjaan->id,
-                        'barang_id' => $item['barang_id'],
-                        'jumlah' => $jumlahRow,
-                        'stok_sebelum' => $stokSebelum,
-                        'stok_sesudah' => $stokSesudah,
-                        'tanggal_keluar' => $item['tgl_keluar'],
-                        'tgl_kembali_rencana' => $barang->isTools() ? $item['tgl_kembali_rencana'] : null,
-                        'status_pinjam' => $barang->isTools() ? 'dipinjam' : null,
-                        'hpp_satuan' => $hargaRow,
-                        'total_hpp' => $totalHppRow,
-                        'keterangan' => $keteranganBatch,
-                        'created_by_name' => auth()->user()->name,
-                    ]);
+                    // 6. Simpan transaksi per-batch
+                    $fotoPath = $fotoPaths[$index] ?? null;
 
-                    // Refresh stok barang setelah setiap baris agar stok_sebelum
-                    // pada baris berikutnya (batch berbeda) selalu akurat
-                    $barang->refresh();
-                    $barang->update(['stok' => $stokSesudah]);
+                    foreach ($detailFifo as $batchIndex => $batchRow) {
+                        $jumlahRow = $batchRow['qty'];
+                        $hargaRow = $batchRow['harga_satuan'];
+                        $totalHppRow = $batchRow['subtotal'];
+
+                        $keteranganBatch = $this->generateKeteranganBatch(
+                            $batchRow,
+                            $item['keterangan'] ?? null
+                        );
+
+                        // if (!$barang->isTools()) {
+                        //     $existing = TransaksiPekerjaan::where('pekerjaan_id', $pekerjaan->id)
+                        //         ->where('barang_id', $item['barang_id'])
+                        //         ->whereDate('tanggal_keluar', $item['tgl_keluar'])
+                        //         ->where('hpp_satuan', $hargaRow)
+                        //         ->whereNull('status_pinjam')
+                        //         ->first();
+
+                        //     if ($existing) {
+                        //         $existing->update([
+                        //             'jumlah' => $existing->jumlah + $jumlahRow,
+                        //             'stok_sesudah' => $existing->stok_sesudah - $jumlahRow,
+                        //             'hpp_satuan' => $hargaRow,
+                        //             'total_hpp' => $existing->total_hpp + $totalHppRow,
+                        //             'keterangan' => $keteranganBatch ?? $existing->keterangan,
+                        //             'foto' => $fotoPath ?? $existing->foto,
+                        //         ]);
+                        //         $barang->update(['stok' => $barang->stok - $jumlahRow]);
+                        //         continue;
+                        //     }
+                        // }
+
+                        $stokSebelum = $barang->stok;
+                        $stokSesudah = $stokSebelum - $jumlahRow;
+
+                        TransaksiPekerjaan::create([
+                            'no_transaksi' => TransaksiPekerjaan::generateNoTransaksi($pekerjaan->id),
+                            'pekerjaan_id' => $pekerjaan->id,
+                            'barang_id' => $item['barang_id'],
+                            'jumlah' => $jumlahRow,
+                            'stok_sebelum' => $stokSebelum,
+                            'stok_sesudah' => $stokSesudah,
+                            'tanggal_keluar' => $item['tgl_keluar'],
+                            'tgl_kembali_rencana' => $barang->isTools() ? $item['tgl_kembali_rencana'] : null,
+                            'status_pinjam' => $barang->isTools() ? 'dipinjam' : null,
+                            'hpp_satuan' => $hargaRow,
+                            'total_hpp' => $totalHppRow,
+                            'keterangan' => $keteranganBatch,
+                            'foto' => $batchIndex === 0 ? $fotoPath : null,
+                            'created_by_name' => auth()->user()->name,
+                        ]);
+
+                        $barang->refresh();
+                        $barang->update(['stok' => $stokSesudah]);
+                    }
                 }
-            }
-        });
+            });
 
+        } catch (\Throwable $e) {
+            // DB gagal — hapus semua file yang sudah terupload
+            foreach ($fotoPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+            Log::error('BarangKeluar store error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        }
+
+        // Error bisnis (stok kurang, dll) — hapus file yang sudah terupload
         if (!empty($errors)) {
+            foreach ($fotoPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
             return back()->withErrors($errors);
         }
 
@@ -188,31 +234,50 @@ class BarangKeluarController extends Controller
             ->with('success', 'Barang berhasil dicatat keluar!');
     }
 
-    // ════════════════════════════════════════════════════════════
-    //  FIFO HELPERS
-    // ════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
+    //  FOTO ACTIONS
+    // ════════════════════════════════════════════════════════════════
 
-    /**
-     * Pisahkan kebutuhan keluar ke dalam kelompok per-batch FIFO.
-     *
-     * ATURAN UTAMA: 1 harga = 1 entri.
-     * Tidak ada rata-rata tertimbang — harga tidak boleh dicampur.
-     *
-     * Contoh (8 unit paku):
-     *   Batch A: sisa 5 unit @10.000  → ambil 5  = 50.000  (stok lama)
-     *   Batch B: sisa 5 unit @15.000  → ambil 3  = 45.000  (stok baru)
-     *   ──────────────────────────────────────────────────────────────
-     *   Hasil: 2 entri → 2 baris transaksi terpisah di pekerjaan.
-     *
-     * @return array<int, array{
-     *   batch_id: int|null,
-     *   qty: int,
-     *   harga_satuan: float,
-     *   subtotal: float,
-     *   tanggal_masuk: string|null,
-     *   is_fallback: bool
-     * }>
-     */
+    public function updateFoto(Request $request, TransaksiPekerjaan $transaksi)
+    {
+        $request->validate([
+            'foto' => 'required|file|mimes:jpeg,jpg,png,webp,heic,heif|max:10240',
+        ]);
+
+        if ($transaksi->foto) {
+            Storage::disk('public')->delete($transaksi->foto);
+        }
+
+        $path = $this->uploadAsWebp($request->file('foto'));
+        $transaksi->update(['foto' => $path]);
+
+        return back()->with('success', 'Foto berhasil diupdate!');
+    }
+
+    public function deleteFoto(TransaksiPekerjaan $transaksi)
+    {
+        if ($transaksi->foto) {
+            Storage::disk('public')->delete($transaksi->foto);
+            $transaksi->update(['foto' => null]);
+        }
+
+        return back()->with('success', 'Foto berhasil dihapus!');
+    }
+
+    public function destroy(TransaksiPekerjaan $transaksi)
+    {
+        if ($transaksi->foto) {
+            Storage::disk('public')->delete($transaksi->foto);
+        }
+        $transaksi->delete();
+
+        return back()->with('success', 'Transaksi berhasil dihapus!');
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  FIFO HELPERS
+    // ════════════════════════════════════════════════════════════════
+
     private function hitungFifoPerBatch(Barang $barang, int $jumlahKeluar): array
     {
         $batches = BatchBarang::where('barang_id', $barang->id)
@@ -231,20 +296,18 @@ class BarangKeluarController extends Controller
 
             $diambil = min($batch->qty_sisa, $sisaKeluar);
             $harga = (float) $batch->harga_satuan;
-            $subtotal = $diambil * $harga;
             $sisaKeluar -= $diambil;
 
             $detailFifo[] = [
                 'batch_id' => $batch->id,
                 'qty' => $diambil,
                 'harga_satuan' => $harga,
-                'subtotal' => $subtotal,
+                'subtotal' => $diambil * $harga,
                 'tanggal_masuk' => $batch->tanggal_masuk,
                 'is_fallback' => false,
             ];
         }
 
-        // ── Fallback jika batch tidak mencukupi (data tidak sinkron) ──────
         if ($sisaKeluar > 0) {
             $hargaFallback = (float) ($barang->prices ?? 0);
 
@@ -261,29 +324,15 @@ class BarangKeluarController extends Controller
         return $detailFifo;
     }
 
-    /**
-     * Kurangi qty_sisa batch sesuai hasil kalkulasi FIFO.
-     * Entry dengan batch_id = null (fallback) dilewati.
-     */
     private function kurangiBatch(array $detailFifo): void
     {
         foreach ($detailFifo as $d) {
             if ($d['batch_id'] === null)
                 continue;
-
-            BatchBarang::where('id', $d['batch_id'])
-                ->decrement('qty_sisa', $d['qty']);
+            BatchBarang::where('id', $d['batch_id'])->decrement('qty_sisa', $d['qty']);
         }
     }
 
-    /**
-     * Buat keterangan otomatis per-baris berdasarkan info batch.
-     *
-     * Contoh output:
-     *   "[Stok lama • masuk 08/05/2025 • @Rp10.000] Catatan user"
-     *   "[Stok baru • masuk 10/05/2025 • @Rp15.000] Catatan user"
-     *   "[Fallback • tanpa batch • @Rp15.000] Catatan user"
-     */
     private function generateKeteranganBatch(array $batchRow, ?string $keteranganUser): string
     {
         $harga = number_format($batchRow['harga_satuan'], 0, ',', '.');
@@ -294,12 +343,9 @@ class BarangKeluarController extends Controller
             $tgl = $batchRow['tanggal_masuk']
                 ? \Carbon\Carbon::parse($batchRow['tanggal_masuk'])->format('d/m/Y')
                 : '-';
-            $label = 'Stok batch'; // bisa dikembangkan: bandingkan tgl untuk label "lama/baru"
-            $prefix = "[{$label} • masuk {$tgl} • @Rp{$harga}]";
+            $prefix = "[Stok batch • masuk {$tgl} • @Rp{$harga}]";
         }
 
-        return $keteranganUser
-            ? "{$prefix} {$keteranganUser}"
-            : $prefix;
+        return $keteranganUser ? "{$prefix} {$keteranganUser}" : $prefix;
     }
 }

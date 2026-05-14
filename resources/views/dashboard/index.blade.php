@@ -4,8 +4,8 @@
 @push('styles')
     <style>
         /* ─────────────────────────────
-                               GRID
-                            ───────────────────────────── */
+                                   GRID
+                                ───────────────────────────── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -20,8 +20,8 @@
         }
 
         /* ─────────────────────────────
-                               CARD
-                            ───────────────────────────── */
+                                   CARD
+                                ───────────────────────────── */
         .card {
             border-radius: 18px;
             overflow: hidden;
@@ -44,15 +44,15 @@
         }
 
         /* ─────────────────────────────
-                               STAT CARD
-                            ───────────────────────────── */
+                                   STAT CARD
+                                ───────────────────────────── */
         .stat-card {
             border-radius: 18px;
             padding: 16px;
             min-height: 120px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
             transition: .2s ease;
         }
 
@@ -68,7 +68,8 @@
         }
 
         .stat-bottom {
-            margin-top: 14px;
+            margin-top: auto;
+            padding-top: 14px;
         }
 
         .stat-bottom .stat-val {
@@ -106,8 +107,8 @@
         }
 
         /* ─────────────────────────────
-                               CHART
-                            ───────────────────────────── */
+                                   CHART
+                                ───────────────────────────── */
         .chart-container {
             position: relative;
             width: 100%;
@@ -165,8 +166,8 @@
         }
 
         /* ─────────────────────────────
-                               DONUT
-                            ───────────────────────────── */
+                                   DONUT
+                                ───────────────────────────── */
         .kategori-section {
             display: flex;
             align-items: center;
@@ -240,8 +241,8 @@
         }
 
         /* ─────────────────────────────
-                               TABLE
-                            ───────────────────────────── */
+                                   TABLE
+                                ───────────────────────────── */
         .table-wrap {
             width: 100%;
             overflow-x: auto;
@@ -253,8 +254,8 @@
         }
 
         /* ─────────────────────────────
-                               TABLET
-                            ───────────────────────────── */
+                                   TABLET
+                                ───────────────────────────── */
         @media (max-width:768px) {
 
             .grid-2 {
@@ -287,11 +288,12 @@
         }
 
         /* ─────────────────────────────
-                               MOBILE
-                            ───────────────────────────── */
+                                   MOBILE
+                                ───────────────────────────── */
         @media (max-width:480px) {
 
             .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
 
@@ -557,7 +559,7 @@
                                 <tr>
                                     <td>
                                         <div class="item-name">{{ $t->barang->nama_barang }}</div>
-                                        <div class="item-sub">×{{ $t->jumlah }} {{ $t->barang->satuan }}</div>
+                                        <div class="item-sub">x{{ $t->jumlah }} {{ $t->barang->satuan }}</div>
                                     </td>
                                     <td style="font-size: 13px;">{{ $t->pekerjaan->nama_peminjam }}</td>
                                     <td

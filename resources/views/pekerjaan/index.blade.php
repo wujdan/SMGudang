@@ -103,7 +103,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
+                            <td colspan="10"> {{-- ganti 8 → 10 --}}
                                 <div class="empty-state"><i class="fa-solid fa-hard-hat"></i>
                                     <p>Belum ada pekerjaan</p>
                                 </div>

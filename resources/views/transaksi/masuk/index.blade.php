@@ -109,7 +109,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9">
+                            <td colspan=11">
                                 <div class="empty-state"><i class="fa-solid fa-truck-ramp-box"></i>
                                     <p>Belum ada data barang masuk</p>
                                 </div>

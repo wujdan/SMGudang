@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class TransaksiPekerjaan extends Model
 {
@@ -25,6 +26,7 @@ class TransaksiPekerjaan extends Model
         'hpp_satuan',
         'total_hpp',
         'created_by_name',
+        'foto',  // Tambahkan ini
     ];
 
     protected $casts = [
@@ -72,6 +74,58 @@ class TransaksiPekerjaan extends Model
             'dikembalikan' => 'badge-success',
             default => 'badge-secondary',
         };
+    }
+
+    // Accessor untuk mendapatkan URL foto
+    public function getFotoUrlAttribute(): ?string
+    {
+        if ($this->foto) {
+            return Storage::url($this->foto);
+        }
+        return null;
+    }
+
+    // Method untuk menghapus foto dari storage dan database
+    public function deleteFoto(): void
+    {
+        if ($this->foto) {
+            Storage::disk('public')->delete($this->foto);
+            $this->foto = null;
+            $this->save();
+        }
+    }
+
+    // Method untuk upload foto baru (akan replace foto lama jika ada)
+    public function uploadFoto($file): void
+    {
+        // Hapus foto lama jika ada
+        if ($this->foto) {
+            Storage::disk('public')->delete($this->foto);
+        }
+
+        // Upload foto baru
+        $path = $file->store('transaksi-pekerjaan', 'public');
+        $this->foto = $path;
+        $this->save();
+    }
+
+    // Method untuk cek apakah transaksi memiliki foto
+    public function hasFoto(): bool
+    {
+        return !is_null($this->foto);
+    }
+
+    // Override method delete untuk hapus foto juga
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($transaksi) {
+            // Hapus foto saat transaksi dihapus
+            if ($transaksi->foto) {
+                Storage::disk('public')->delete($transaksi->foto);
+            }
+        });
     }
 
     public static function generateNoTransaksi(int $pekerjaanId): string

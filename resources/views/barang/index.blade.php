@@ -181,30 +181,32 @@
         /* ── MOBILE (≤600px) ── */
         @media (max-width: 600px) {
 
-            /* Page header susun vertikal */
+            /* Page header: tetap horizontal, tombol di kanan atas */
             .page-header {
-                flex-direction: column;
-                align-items: stretch;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .page-header h2 {
+                font-size: 16px;
+            }
+
+            .page-header p {
+                font-size: 11px;
             }
 
             .page-header .actions {
-                width: 100%;
+                width: auto;
+                flex-shrink: 0;
             }
 
             .page-header .actions .btn {
-                width: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
+                width: auto;
+                padding: 6px 14px;
+                font-size: 13px;
             }
 
-            /*
-                         * Filter: gunakan grid 2 kolom
-                         * Baris 1: search (full lebar)
-                         * Baris 2: kategori | status
-                         * Baris 3: tombol (full lebar)
-                         */
             .filter-form {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -252,6 +254,11 @@
                 display: none;
             }
 
+            /* Sembunyikan kolom penginput */
+            .col-penginput {
+                display: none;
+            }
+
             /* Footer susun vertikal */
             .card-footer {
                 flex-direction: column;
@@ -269,12 +276,6 @@
             }
 
             .col-harga {
-                display: none;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .col-penginput {
                 display: none;
             }
         }
@@ -452,7 +453,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9">
+                            <td colspan="10">
                                 <div class="empty-state">
                                     <i class="fa-solid fa-boxes-stacked"></i>
                                     <p>
@@ -462,8 +463,6 @@
                                                 filter</a>
                                         @else
                                             Belum ada data barang.
-                                            <a href="{{ route('barang.create') }}" style="color: var(--primary);">Tambah
-                                                sekarang</a>
                                         @endif
                                     </p>
                                 </div>
