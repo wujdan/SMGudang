@@ -35,8 +35,7 @@ class BarangController extends Controller
         }
 
         $barang = $query->where('is_active', true)
-            ->orderBy('kategori')
-            ->orderBy('nama_barang')
+            ->orderByDesc('created_at')
             ->paginate(15)
             ->withQueryString();
 
