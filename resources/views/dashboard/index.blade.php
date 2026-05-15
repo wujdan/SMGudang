@@ -3,14 +3,15 @@
 
 @push('styles')
     <style>
-        /* ─────────────────────────────
-                                       GRID
-                                    ───────────────────────────── */
+        /* ─────────────────────────
+       GRID
+    ───────────────────────── */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 14px;
             margin-bottom: 16px;
+            align-items: stretch;
         }
 
         .grid-2 {
@@ -19,9 +20,9 @@
             gap: 16px;
         }
 
-        /* ─────────────────────────────
-                                       CARD
-                                    ───────────────────────────── */
+        /* ─────────────────────────
+       CARD UMUM
+    ───────────────────────── */
         .card {
             border-radius: 18px;
             overflow: hidden;
@@ -43,72 +44,143 @@
             font-size: 15px;
         }
 
-        /* ─────────────────────────────
-                                       STAT CARD
-                                    ───────────────────────────── */
+        /* ─────────────────────────
+       STAT CARD
+       - TIDAK pakai .card sebagai parent
+       - border-radius sendiri
+       - overflow: hidden sendiri
+    ───────────────────────── */
         .stat-card {
-            border-radius: 18px;
-            padding: 16px;
-            min-height: 120px;
+            position: relative;
+
+            border-radius: 20px;
+            padding: 18px;
+
+            box-sizing: border-box;
+
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            transition: .2s ease;
+
+            height: 190px;
+
+            overflow: hidden;
+            /* supaya border-top accent tidak keluar */
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
         }
 
         .stat-card:hover {
             transform: translateY(-2px);
         }
 
+        /* ─────────────────────────
+       TOP AREA
+    ───────────────────────── */
         .stat-top {
             display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .stat-bottom {
-            margin-top: auto;
-            padding-top: 14px;
-        }
-
-        .stat-bottom .stat-val {
-            font-size: 30px !important;
-            font-weight: 800 !important;
-            line-height: 1 !important;
-        }
-
-        .stat-lbl {
-            margin-top: 4px;
-            font-size: 12px;
-            color: var(--muted);
-        }
-
-        .stat-icon {
-            width: 46px;
-            height: 46px;
-            border-radius: 14px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 18px;
+            justify-content: space-between;
+
+            gap: 12px;
+
+            height: 52px;
+
             flex-shrink: 0;
         }
 
+        /* ─────────────────────────
+       ICON
+    ───────────────────────── */
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+
+            border-radius: 16px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            font-size: 20px;
+        }
+
+        .stat-icon i {
+            line-height: 1;
+            display: block;
+        }
+
+        /* ─────────────────────────
+       STATUS BADGE
+    ───────────────────────── */
         .stat-status {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 5px 9px;
+            justify-content: center;
+
+            gap: 6px;
+
+            height: 32px;
+
+            padding: 0 14px;
+
             border-radius: 999px;
-            font-size: 10px;
+
+            font-size: 11px;
             font-weight: 700;
+
             white-space: nowrap;
+
+            line-height: 1;
+
+            flex-shrink: 0;
         }
 
-        /* ─────────────────────────────
-                                       CHART
-                                    ───────────────────────────── */
+        /* ─────────────────────────
+       BOTTOM AREA
+    ───────────────────────── */
+        .stat-bottom {
+            flex: 1;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        /* ─────────────────────────
+       VALUE
+    ───────────────────────── */
+        .stat-bottom .stat-val {
+            margin: 0;
+            padding: 0;
+
+            font-size: 36px !important;
+            font-weight: 800 !important;
+
+            line-height: 1 !important;
+            letter-spacing: -0.5px;
+
+            display: block;
+        }
+
+        /* ─────────────────────────
+       LABEL
+    ───────────────────────── */
+        .stat-lbl {
+            margin-top: 8px;
+
+            font-size: 14px;
+            line-height: 1.4;
+
+            color: var(--muted);
+        }
+
+        /* ─────────────────────────
+       CHART AREA
+    ───────────────────────── */
         .chart-container {
             position: relative;
             width: 100%;
@@ -165,9 +237,9 @@
             background: #ef4444;
         }
 
-        /* ─────────────────────────────
-                                       DONUT
-                                    ───────────────────────────── */
+        /* ─────────────────────────
+       DONUT + LEGEND
+    ───────────────────────── */
         .kategori-section {
             display: flex;
             align-items: center;
@@ -241,9 +313,9 @@
             color: var(--muted);
         }
 
-        /* ─────────────────────────────
-                                       TABLE
-                                    ───────────────────────────── */
+        /* ─────────────────────────
+       TABLE
+    ───────────────────────── */
         .table-wrap {
             width: 100%;
             overflow-x: auto;
@@ -254,33 +326,48 @@
             min-width: 650px;
         }
 
-        /* ─────────────────────────────
-                                       TABLET
-                                    ───────────────────────────── */
-        @media (max-width:768px) {
+        /* ─────────────────────────
+       TABLET  ≤768px
+    ───────────────────────── */
+        @media (max-width: 768px) {
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                /* 2 kolom di tablet */
+            }
 
             .grid-2 {
                 grid-template-columns: 1fr;
             }
 
             .stat-card {
-                min-height: 110px;
-                padding: 15px;
+                height: 175px;
+                padding: 16px;
+            }
+
+            .stat-top {
+                height: 48px;
+            }
+
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .stat-status {
+                height: 30px;
+                font-size: 10px;
+                padding: 0 12px;
             }
 
             .stat-bottom .stat-val {
-                font-size: 26px !important;
+                font-size: 30px !important;
             }
 
             .chart-container {
                 aspect-ratio: 16/7;
                 max-height: 200px;
-            }
-
-            .kategori-section {
-                flex-direction: row;
-                align-items: center;
-                gap: 14px;
             }
 
             .chart-donut-wrap {
@@ -289,10 +376,10 @@
             }
         }
 
-        /* ─────────────────────────────
-                                       MOBILE
-                                    ───────────────────────────── */
-        @media (max-width:480px) {
+        /* ─────────────────────────
+       MOBILE  ≤480px
+    ───────────────────────── */
+        @media (max-width: 480px) {
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -304,23 +391,39 @@
             }
 
             .stat-card {
-                border-radius: 16px;
+                height: 160px;
                 padding: 14px;
-                min-height: 100px;
+                border-radius: 16px;
+            }
+
+            .stat-top {
+                height: 42px;
             }
 
             .stat-icon {
-                width: 40px;
-                height: 40px;
+                width: 42px;
+                height: 42px;
+                border-radius: 14px;
                 font-size: 16px;
             }
 
+            .stat-status {
+                height: 28px;
+                padding: 0 10px;
+                font-size: 10px;
+            }
+
             .stat-bottom .stat-val {
-                font-size: 22px !important;
+                font-size: 30px !important;
+            }
+
+            .stat-bottom .stat-val {
+                font-size: 24px !important;
             }
 
             .stat-lbl {
-                font-size: 11px;
+                margin-top: 6px;
+                font-size: 12px;
             }
 
             .chart-container {

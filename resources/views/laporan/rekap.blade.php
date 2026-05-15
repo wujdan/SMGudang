@@ -102,6 +102,7 @@
 
         /* ── TABLET (≤768px) ── */
         @media (max-width: 768px) {
+
             .f-date,
             .f-select {
                 flex: 0 0 auto;
@@ -236,6 +237,15 @@
             </div>
         </div>
 
+        @php
+            $hppDisplay =
+                $grandTotalHpp >= 1_000_000_000
+                    ? number_format($grandTotalHpp / 1_000_000_000, 1, ',', '.') . ' M'
+                    : ($grandTotalHpp >= 1_000_000
+                        ? number_format($grandTotalHpp / 1_000_000, 1, ',', '.') . ' Jt'
+                        : number_format($grandTotalHpp, 0, ',', '.'));
+        @endphp
+
         <div class="stat-card green">
             <div class="stat-top">
                 <div class="stat-icon">
@@ -246,10 +256,13 @@
                 </span>
             </div>
             <div>
-                <div class="stat-val">
-                {{ number_format($grandTotalHpp, 0, ',', '.') }}
+                <div class="stat-val">{{ $hppDisplay }}</div>
+                <div class="stat-lbl">
+                    Grand Total HPP
+                    <span style="font-size: 11px; color: var(--muted); display: block; margin-top: 2px;">
+                        Rp {{ number_format($grandTotalHpp, 0, ',', '.') }}
+                    </span>
                 </div>
-                <div class="stat-lbl">Grand Total HPP</div>
             </div>
         </div>
 
