@@ -254,6 +254,38 @@
                 display: none;
             }
         }
+
+        /* ── Nama barang & kode lebih lega ── */
+        .table-wrap table th:nth-child(2),
+        .table-wrap table td:nth-child(2) {
+            min-width: 110px;
+        }
+
+        .table-wrap table th:nth-child(3),
+        .table-wrap table td:nth-child(3) {
+            min-width: 180px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .item-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+            white-space: normal;
+        }
+
+        /* ── Kode barang tidak terpotong ── */
+        .kode {
+            white-space: nowrap;
+            display: inline-block;
+        }
     </style>
 @endpush
 
@@ -310,13 +342,13 @@
                         <th class="col-no" style="width:40px;">#</th>
                         <th class="col-kode" style="width:110px;">Kode</th>
                         <th>Nama Barang</th>
-                        <th style="width:110px;">Kategori</th>
-                        <th class="col-satuan" style="width:80px;">Satuan</th>
-                        <th style="width:65px;">Stok</th>
-                        <th class="col-status" style="width:90px;">Status</th>
-                        <th class="col-harga" style="width:130px;">Harga</th>
-                        <th class="col-penginput" style="width:120px;">Diinput Oleh</th>
-                        <th style="width:95px; text-align:center;">Aksi</th>
+                        <th style="width:95px;">Kategori</th>
+                        <th class="col-satuan" style="width:70px;">Satuan</th>
+                        <th style="width:60px;">Stok</th>
+                        <th class="col-status" style="width:80px;">Status</th>
+                        <th class="col-harga" style="width:120px;">Harga</th>
+                        <th class="col-penginput" style="width:110px;">Diinput Oleh</th>
+                        <th style="width:90px; text-align:center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>

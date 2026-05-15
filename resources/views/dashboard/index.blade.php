@@ -4,8 +4,8 @@
 @push('styles')
     <style>
         /* ─────────────────────────────
-                                   GRID
-                                ───────────────────────────── */
+                                       GRID
+                                    ───────────────────────────── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -20,8 +20,8 @@
         }
 
         /* ─────────────────────────────
-                                   CARD
-                                ───────────────────────────── */
+                                       CARD
+                                    ───────────────────────────── */
         .card {
             border-radius: 18px;
             overflow: hidden;
@@ -44,8 +44,8 @@
         }
 
         /* ─────────────────────────────
-                                   STAT CARD
-                                ───────────────────────────── */
+                                       STAT CARD
+                                    ───────────────────────────── */
         .stat-card {
             border-radius: 18px;
             padding: 16px;
@@ -107,8 +107,8 @@
         }
 
         /* ─────────────────────────────
-                                   CHART
-                                ───────────────────────────── */
+                                       CHART
+                                    ───────────────────────────── */
         .chart-container {
             position: relative;
             width: 100%;
@@ -166,12 +166,13 @@
         }
 
         /* ─────────────────────────────
-                                   DONUT
-                                ───────────────────────────── */
+                                       DONUT
+                                    ───────────────────────────── */
         .kategori-section {
             display: flex;
             align-items: center;
             gap: 18px;
+            flex-wrap: nowrap;
         }
 
         .chart-donut-wrap {
@@ -241,8 +242,8 @@
         }
 
         /* ─────────────────────────────
-                                   TABLE
-                                ───────────────────────────── */
+                                       TABLE
+                                    ───────────────────────────── */
         .table-wrap {
             width: 100%;
             overflow-x: auto;
@@ -254,8 +255,8 @@
         }
 
         /* ─────────────────────────────
-                                   TABLET
-                                ───────────────────────────── */
+                                       TABLET
+                                    ───────────────────────────── */
         @media (max-width:768px) {
 
             .grid-2 {
@@ -277,8 +278,9 @@
             }
 
             .kategori-section {
-                flex-direction: column;
-                align-items: flex-start;
+                flex-direction: row;
+                align-items: center;
+                gap: 14px;
             }
 
             .chart-donut-wrap {
@@ -288,8 +290,8 @@
         }
 
         /* ─────────────────────────────
-                                   MOBILE
-                                ───────────────────────────── */
+                                       MOBILE
+                                    ───────────────────────────── */
         @media (max-width:480px) {
 
             .stats-grid {
